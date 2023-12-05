@@ -23,8 +23,12 @@ public class ApiProperties {
     private String planilhasBaseUrl;
 
     @URL
-    @NotBlank(message = "URL do servico de planilhas não pode ser null")
+    @NotBlank(message = "URL do servico de notificações não pode ser null")
     private String notificationBaseUrl;
+
+    @URL
+    @NotBlank(message = "URL do servico de processos não pode ser null")
+    private String processosBaseUrl;
 
     @NotBlank(message = "app-home não pode ser vazio ou null")
     private String appHome;
@@ -62,7 +66,9 @@ public class ApiProperties {
             return StaticCredentialsProvider.create(this);
         }
     }
+
     private Sign sign;
+
     @Data
     public static class Sign {
 
