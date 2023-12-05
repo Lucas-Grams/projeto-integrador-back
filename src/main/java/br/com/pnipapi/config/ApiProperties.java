@@ -24,7 +24,7 @@ public class ApiProperties {
 
     @URL
     @NotBlank(message = "URL do servico de notificações não pode ser null")
-    private String notificationBaseUrl;
+    private String notificacoesBaseUrl;
 
     @URL
     @NotBlank(message = "URL do servico de processos não pode ser null")
