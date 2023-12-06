@@ -9,7 +9,7 @@ RUN ./mvnw -B de.qaware.maven:go-offline-maven-plugin:resolve-dependencies
 COPY src ./src
 ARG MVNARGS="package"
 
-RUN ./mvnw -B ${MVNARGS} -Dmaven.test.skip
+RUN ./mvnw -B ${MVNARGS} -Dmaven.test.skip -Dnet.bytebuddy.experimental=true
 
 
 
@@ -28,7 +28,7 @@ RUN apt-get update -y \
 
 ENV LANG='pt_BR.UTF-8' LANGUAGE='pt_BR.UTF-8' LC_ALL='pt_BR.UTF-8'
 
-COPY --from=BUILDER /tmp/build/target/*.jar /api.jar
+COPY --from=BUILDER /tmp/build/target/*.war /api.jar
 
 ENV SPRING_PROFILES_ACTIVE="local"
 ENV SERVER_SERVLET_CONTEXT_PATH="/"
