@@ -13,7 +13,7 @@ RUN ./mvnw -B ${MVNARGS} -Dmaven.test.skip -Dnet.bytebuddy.experimental=true
 
 
 
-FROM openjdk:17.0.1-jdk-bullseye as RUNNER
+FROM openjdk:17 as RUNNER
 
 
 RUN apt-get update -y \
