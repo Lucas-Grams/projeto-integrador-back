@@ -16,15 +16,7 @@ RUN ./mvnw -B ${MVNARGS} -Dmaven.test.skip -Dnet.bytebuddy.experimental=true
 FROM openjdk:17 as RUNNER
 
 
-RUN apt-get update -y \
-    && apt-get install -y locales curl \
-    && rm -rf /var/lib/apt/lists \
-    && echo "pt_BR.UTF-8 UTF-8" > /etc/locale.gen \
-    && locale-gen \
-    && echo "LANG=\"pt_BR.UTF-8\"" > /etc/locale.conf \
-    && rm -f /etc/localtime /etc/timezone \
-    && ln -s /usr/share/zoneinfo/America/Maceio /etc/localtime \
-    && ln -s /usr/share/zoneinfo/America/Maceio /etc/timezone
+RUN echo "America/Sao_Paulo" > /etc/timezone
 
 ENV LANG='pt_BR.UTF-8' LANGUAGE='pt_BR.UTF-8' LC_ALL='pt_BR.UTF-8'
 
