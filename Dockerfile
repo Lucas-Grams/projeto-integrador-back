@@ -26,8 +26,6 @@ RUN apt-get update -y \
     && ln -s /usr/share/zoneinfo/America/Maceio /etc/localtime \
     && ln -s /usr/share/zoneinfo/America/Maceio /etc/timezone
 
-USER pnip
-
 ENV LANG='pt_BR.UTF-8' LANGUAGE='pt_BR.UTF-8' LC_ALL='pt_BR.UTF-8'
 
 COPY --from=BUILDER /tmp/build/target/*.jar /api.jar
