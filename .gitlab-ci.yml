@@ -24,7 +24,6 @@ build docker image:
     tags:
         - ufsm-pnip
 
-
 deploy docker image:
     stage: deploy
     variables:
