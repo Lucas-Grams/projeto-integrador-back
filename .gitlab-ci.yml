@@ -1,0 +1,36 @@
+stages:
+    - build
+    - deploy
+
+build docker image:
+    image: docker:20.10.5
+    services:
+        - docker:20.10.5-dind
+    stage: build
+    variables:
+        #DOCKER_HOST: tcp://docker:2376
+        #DOCKER_TLS_CERTDIR: "/certs"
+        IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH"
+    before_script:
+        - docker login --username="$CI_REGISTRY_USER" --password="$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+        - docker pull "$IMAGE" || true
+    script:
+        - >-
+            docker build
+            --tag "$IMAGE"
+            .
+        - docker push "$IMAGE"
+    tags:
+        - ufsm-pnip
+
+
+deploy_docker_image:
+    stage: deploy
+    variables:
+        SERVICE_REQUESTED: API
+        COMMAND: deploy
+        IMAGE_REGISTER: $CI_REGISTRY_IMAGE
+        BRANCH_NAME: $CI_COMMIT_BRANCH
+    trigger:
+        project: br.ufsm.lumac1/pnip-mpa/infra/review-env-deployer
+        branch: main
