@@ -12,7 +12,6 @@ ARG MVNARGS="package"
 RUN ./mvnw -B ${MVNARGS} -Dmaven.test.skip -Dnet.bytebuddy.experimental=true
 
 
-
 FROM openjdk:17 as RUNNER
 
 
