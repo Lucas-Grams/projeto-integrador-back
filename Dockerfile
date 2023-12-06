@@ -12,7 +12,7 @@ ARG MVNARGS="package"
 RUN ./mvnw -B ${MVNARGS} -Dmaven.test.skip -Dnet.bytebuddy.experimental=true
 
 
-FROM openjdk:17 as RUNNER
+FROM openjdk:17.0.1-jdk-slim-bullseye as RUNNER
 
 
 RUN echo "America/Sao_Paulo" > /etc/timezone
