@@ -1,6 +1,7 @@
 stages:
     - build
     - deploy
+    - clear
 
 build docker image:
     image: docker:20.10.5
@@ -24,7 +25,7 @@ build docker image:
         - ufsm-pnip
 
 
-deploy_docker_image:
+deploy docker image:
     stage: deploy
     variables:
         SERVICE_REQUESTED: API
@@ -34,3 +35,14 @@ deploy_docker_image:
     trigger:
         project: br.ufsm.lumac1/pnip-mpa/infra/review-env-deployer
         branch: main
+
+clear docker:
+    image: docker:20.10.5
+    stage: clear
+    variables:
+        - SOURCE_BRANCH: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+    only:
+        refs:
+            - merge_requests
+        variables:
+            - $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
