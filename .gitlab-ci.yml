@@ -25,6 +25,7 @@ build docker image:
         - ufsm-pnip
 
 
+
 deploy docker image:
     stage: deploy
     variables:
