@@ -1,5 +1,6 @@
 package br.com.pnipapi.utils.helper;
 
+import br.com.pnipapi.exception.MethodArgumentNotValidException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import javax.net.ssl.SSLContext;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
@@ -38,7 +40,6 @@ public class KeyCloakRestTemplate {
         this.headers = headers;
         this.keycloakRestTemplate = restTemplate;
     }
-
 
     public KeyCloakRestTemplate() {
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -112,6 +113,16 @@ public class KeyCloakRestTemplate {
             throw new KeyCloakRestTemplateException("Error get entity: ", e);
         }
     }
+
+    public URI getURI(String apiUrl, String url) {
+        try {
+            return new URI(apiUrl + "/" + url);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            throw new MethodArgumentNotValidException(e.getMessage());
+        }
+    }
+
 }
 
 
