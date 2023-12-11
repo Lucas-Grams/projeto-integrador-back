@@ -24,7 +24,7 @@ public class UnidadeController {
         return unidadeService.save(unidade);
     }
 
-    @GetMapping("")
+    @GetMapping("/findAll")
     public List<Unidade> findAll(){
         return unidadeService.findAll();
     }
