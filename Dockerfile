@@ -27,7 +27,5 @@ ENV SERVER_SERVLET_CONTEXT_PATH="/"
 
 EXPOSE 8080
 
-HEALTHCHECK --start-period=10s --interval=15s --timeout=3s --retries=3 \
-	CMD curl --fail "http://localhost:8080${SERVER_SERVLET_CONTEXT_PATH}" || exit 1
 
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/urandom", "-jar", "/api.jar"]
