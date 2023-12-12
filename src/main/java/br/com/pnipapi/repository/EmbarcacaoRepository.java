@@ -11,7 +11,7 @@ public interface EmbarcacaoRepository extends JpaRepository<Embarcacao, Long> {
     @Query(nativeQuery = true, value = """ 
         SELECT *  
         FROM public.embarcacao e
-        WHERE (e.nome like :filter) or (e.num_marinha_tie like :filter) or (e.num_marinha like :filter) or (e.num_rgp like :filter) LIMIT 10
+        WHERE (e.nome ilike :filter%) or (e.num_marinha_tie ilike :filter%) or (e.num_marinha ilike :filter%) or (e.num_rgp ilike :filter%) LIMIT 10
         """)
     List<Embarcacao> findAllEmbarcacaoByRgpTieNome(String filter);
 

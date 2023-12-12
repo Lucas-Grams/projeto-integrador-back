@@ -29,7 +29,7 @@ public class ResponseDTO<T> {
         return new ResponseDTO<>(msg, Status.SUCCESS, null);
     }
 
-    public static ResponseDTO<Void> err(String msg) {
+    public static <T> ResponseDTO<T> err(String msg) {
         return new ResponseDTO<>(msg, Status.ERROR, null);
     }
 
