@@ -4,6 +4,7 @@ import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeFormDTO;
 import br.com.pnipapi.model.Unidade;
 import br.com.pnipapi.service.UnidadeService;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,7 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RestController("/unidade")
+@RestController
+@Controller("/unidade")
 public class UnidadeController {
     UnidadeService unidadeService;
 

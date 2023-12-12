@@ -22,7 +22,9 @@ public class UnidadeService {
 
     public ResponseDTO<Unidade> save(UnidadeFormDTO unidade){
         Unidade unidadeSalva = new Unidade();
-        unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
+        if(unidade.idUnidadeGerenciadora() > 0){
+            unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
+        }
         unidadeSalva.setNome(unidade.nome());
         unidadeSalva.setTipo(unidade.tipo());
         unidadeSalva.setDataCadastro(Date.valueOf(LocalDate.now()));
