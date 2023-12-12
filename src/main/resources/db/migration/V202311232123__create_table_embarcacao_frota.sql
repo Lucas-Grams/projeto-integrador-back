@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.embarcacao (
     propulsao varchar(50),
     hp integer,
     combustivel varchar(50),
-    comprimento integer,
+    comprimento varchar(50),
     material_casco varchar(50),
     canal_radio integer,
     equipamento_comunicacao varchar(50),
