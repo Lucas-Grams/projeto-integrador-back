@@ -1,14 +1,20 @@
 package br.com.pnipapi.model;
 
+import br.com.pnipapi.dto.UnidadeFormDTO;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
 @Table(name = "unidade", schema = "public")
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class Unidade {
 
     @Id
@@ -41,5 +47,23 @@ public class Unidade {
 
     @Column
     private Date ultima_atualizacao;
+
+    public Unidade toUnidade(UnidadeFormDTO uni){
+        Unidade unidadeNova = new Unidade();
+        unidadeNova.setNome(uni.nome());
+        unidadeNova.setTipo(uni.tipo());
+        unidadeNova.setDataCadastro(Date.valueOf(LocalDate.now()));
+        Endereco endereco = new Endereco();
+        endereco.setUf(uni.uf());
+        endereco.setCidade(uni.cidade());
+        endereco.setBairro(uni.bairro());
+        endereco.setRua(uni.rua());
+        endereco.setComplemento(uni.complemento());
+        endereco.setNumero(uni.numero());
+        endereco.setCep(uni.cep());
+        unidadeNova.setEndereco(endereco);
+
+        return unidadeNova;
+    }
 
 }

@@ -25,26 +25,17 @@ public class UnidadeService {
         if(unidade.idUnidadeGerenciadora() > 0){
             unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
         }
-        unidadeSalva.setNome(unidade.nome());
-        unidadeSalva.setTipo(unidade.tipo());
-        unidadeSalva.setDataCadastro(Date.valueOf(LocalDate.now()));
-
-        Endereco endereco = new Endereco();
-        endereco.setUf(unidade.uf());
-        endereco.setCidade(unidade.cidade());
-        endereco.setBairro(unidade.bairro());
-        endereco.setRua(unidade.rua());
-        endereco.setComplemento(unidade.complemento());
-        endereco.setNumero(unidade.numero());
-        endereco.setCep(unidade.cep());
-        unidadeSalva.setEndereco(endereco);
-        System.out.println("service");
+        unidadeSalva.toUnidade(unidade);
         unidadeRepository.save(unidadeSalva);
         return ResponseDTO.ok( "Unidade cadastrada com sucesso!", unidadeSalva);
     }
 
     public List<Unidade> findAll(){
         return unidadeRepository.findAll().parallelStream().filter(Objects::nonNull).toList();
+    }
+
+    public List<Unidade> getGerenciadoras(String tipo){
+        return unidadeRepository.getUnidadeByTipo(tipo);
     }
 
 }
