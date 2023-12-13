@@ -23,7 +23,7 @@ public record EmbarcacaoDTO (
     String pais,
     Integer anoConstrucao,
     Integer hp,
-    Integer comprimento,
+    String comprimento,
     @NotNull @NotEmpty
     String petrecho,
     @NotNull @NotEmpty

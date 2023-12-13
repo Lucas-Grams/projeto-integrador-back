@@ -64,7 +64,7 @@ public class Embarcacao {
 
     @Basic
     @Column(name = "comprimento", nullable = true)
-    private Integer comprimento;
+    private String comprimento;
 
     @Basic
     @Column(name = "material_casco", nullable = true, length = 50)

@@ -4,15 +4,13 @@ import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UsuarioInfo;
 import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.service.UsuarioService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
 
-@RestController("/usuario")
+@RestController
+@RequestMapping("/usuario")
 public class UsuarioController {
 
     UsuarioService usuarioService;
