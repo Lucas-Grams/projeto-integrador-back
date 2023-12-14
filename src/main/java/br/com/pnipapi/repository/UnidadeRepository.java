@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
 
-    @Query(value = " SELECT u.* FROM unidade u " +
-        "   WHERE u.tipo = :tipo ")
+    @Query(value = " SELECT * FROM unidade u " +
+        "   WHERE u.tipo = :tipo ", nativeQuery = true)
     List<Unidade> getUnidadeByTipo(@Param("tipo") String tipo);
 }

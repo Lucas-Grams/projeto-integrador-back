@@ -2,22 +2,22 @@ package br.com.pnipapi.service;
 
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeFormDTO;
-import br.com.pnipapi.model.Endereco;
 import br.com.pnipapi.model.Unidade;
+import br.com.pnipapi.repository.EnderecoRepository;
 import br.com.pnipapi.repository.UnidadeRepository;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
 @Service
 public class UnidadeService {
     UnidadeRepository unidadeRepository;
+    EnderecoRepository enderecoRepository;
 
-    public UnidadeService(UnidadeRepository unidadeRepository) {
+    public UnidadeService(UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository) {
         this.unidadeRepository = unidadeRepository;
+        this.enderecoRepository = enderecoRepository;
     }
 
     public ResponseDTO<Unidade> save(UnidadeFormDTO unidade){
@@ -25,7 +25,10 @@ public class UnidadeService {
         if(unidade.idUnidadeGerenciadora() > 0){
             unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
         }
-        unidadeSalva.toUnidade(unidade);
+        unidadeSalva = unidadeSalva.toUnidade(unidade);
+        if (unidadeSalva.getEndereco() != null) {
+            enderecoRepository.save(unidadeSalva.getEndereco());
+        }
         unidadeRepository.save(unidadeSalva);
         return ResponseDTO.ok( "Unidade cadastrada com sucesso!", unidadeSalva);
     }
