@@ -22,14 +22,15 @@ public class UnidadeService {
 
     public ResponseDTO<Unidade> save(UnidadeFormDTO unidade){
         Unidade unidadeSalva = new Unidade();
+        unidadeSalva = unidadeSalva.toUnidade(unidade);
         if(unidade.idUnidadeGerenciadora() > 0){
             unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
         }
-        unidadeSalva = unidadeSalva.toUnidade(unidade);
         if (unidadeSalva.getEndereco() != null) {
             enderecoRepository.save(unidadeSalva.getEndereco());
         }
         unidadeRepository.save(unidadeSalva);
+
         return ResponseDTO.ok( "Unidade cadastrada com sucesso!", unidadeSalva);
     }
 
