@@ -2,11 +2,11 @@ package br.com.pnipapi.controller;
 
 import br.com.pnipapi.dto.HabilitarTRDTO;
 import br.com.pnipapi.dto.ResponseDTO;
+import br.com.pnipapi.dto.SolicitacaoHabilitacaoDTO;
 import br.com.pnipapi.service.TRService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/tr")
@@ -16,6 +16,16 @@ public class TRController {
 
     public TRController(TRService trService) {
         this.trService = trService;
+    }
+
+    @GetMapping("/minhas-solicitacoes")
+    List<SolicitacaoHabilitacaoDTO> minhasSolicitacoes() {
+        return trService.minhasSolicitacoes();
+    }
+
+    @GetMapping("/detalhes-solicitacao/{uuid}")
+    HabilitarTRDTO detalhesSolicitacao(@PathVariable String uuid) {
+        return trService.detalhesSolicitacao(uuid);
     }
 
     @PostMapping("/solicitar-habilitacao")
