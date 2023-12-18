@@ -29,9 +29,9 @@ public class UnidadeController {
     @GetMapping("/getGerenciadoras/{tipo}")
     public List<Unidade> getGerenciadoras(@PathVariable String tipo) {return unidadeService.getGerenciadoras(tipo);}
 
-    @PostMapping("excluirUnidade")
+    @PostMapping("inativarUnidade")
     public void delete(@RequestBody String uuid){
-        unidadeService.delete(uuid);
+        unidadeService.inativa(uuid);
     }
 
     @GetMapping("findUnidadeByUuid/{uuid}")

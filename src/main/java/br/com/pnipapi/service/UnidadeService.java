@@ -9,6 +9,7 @@ import br.com.pnipapi.repository.EnderecoRepository;
 import br.com.pnipapi.repository.UnidadeRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,26 +35,36 @@ public class UnidadeService {
         if (unidadeSalva.getEndereco() != null) {
             enderecoRepository.save(unidadeSalva.getEndereco());
         }
-        unidadeSalva = unidadeRepository.save(unidadeSalva);
         usuario = usuarioService.save(unidade.usuarioRepresentante());
-        unidadeRepository.salvarRepresentante(Math.toIntExact(unidadeSalva.getId()), Math.toIntExact(usuario.getId()));
+
+        if (Objects.nonNull(unidadeSalva.getUsuarios())) {
+            unidadeSalva.getUsuarios().add(usuario);
+        } else {
+            unidadeSalva.setUsuarios(new ArrayList<>());
+            unidadeSalva.getUsuarios().add(usuario);
+        }
+        System.out.println(unidadeSalva.getUsuarios().toString());
+        unidadeSalva = unidadeRepository.save(unidadeSalva);
 
         return ResponseDTO.ok( "Unidade cadastrada com sucesso!", unidadeSalva);
     }
 
     public List<Unidade> findAll(){
-        return unidadeRepository.findAll().parallelStream().filter(Objects::nonNull).toList();
+        return unidadeRepository.findAllByAtivo(true).parallelStream().filter(Objects::nonNull).toList();
     }
 
     public List<Unidade> getGerenciadoras(String tipo){
         return unidadeRepository.getUnidadeByTipo(tipo);
     }
 
-    public void delete(String uuid){
-        Unidade unidade = new Unidade();
-        unidade = this.unidadeRepository.findByUuid(uuid);
-        System.out.println(unidade.getNome());
-        unidadeRepository.delete(unidade);
+    public void inativa(String uuid) {
+        Unidade unidade = this.unidadeRepository.findByUuid(uuid);
+
+        if(!unidade.getUsuarios().isEmpty()) {
+            unidadeRepository.updateRepresentante(Math.toIntExact(unidade.getId()));
+        }
+        unidade.setAtivo(false);
+        unidadeRepository.save(unidade);
     }
 
     public Unidade findByUuid(String uuid){
@@ -70,11 +81,18 @@ public class UnidadeService {
         if (unidadeSalva.getEndereco() != null) {
             enderecoRepository.save(unidadeSalva.getEndereco());
         }
-        unidadeSalva = unidadeRepository.save(unidadeSalva);
-        if(unidade.usuarioRepresentante() != null) {
-            usuario = usuarioService.save(unidade.usuarioRepresentante());
-            unidadeRepository.salvarRepresentante(Math.toIntExact(unidadeSalva.getId()), Math.toIntExact(usuario.getId()));
+
+        usuario = usuarioService.save(unidade.usuarioRepresentante());
+
+        if (Objects.nonNull(unidadeSalva.getUsuarios())) {
+            unidadeSalva.getUsuarios().add(usuario);
+        } else {
+            unidadeSalva.setUsuarios(new ArrayList<>());
+            unidadeSalva.getUsuarios().add(usuario);
         }
+
+        unidadeSalva = unidadeRepository.save(unidadeSalva);
+
         return ResponseDTO.ok( "Unidade atualizada com sucesso!", unidadeSalva);
     }
 }
