@@ -1,5 +1,7 @@
 package br.com.pnipapi.dto;
 
+import br.com.pnipapi.model.Usuario;
+
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 
@@ -27,5 +29,7 @@ public record UnidadeFormDTO(
    @NotBlank(message = "Campo latitude é obrigatório.")
    String latitude,
    @NotBlank(message = "Campo longitude é obrigatório.")
-   String longitude
+   String longitude,
+
+   Usuario usuarioRepresentante
 ) {}

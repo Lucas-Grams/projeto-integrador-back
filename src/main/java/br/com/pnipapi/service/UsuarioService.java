@@ -36,6 +36,16 @@ public class UsuarioService {
                 .dataCadastro(usuarioSalvo.getDataCadastro()).build());
     }
 
+    public Usuario save(Usuario usuario){
+        if (usuario.getSenha() != null && Strings.isNotBlank(usuario.getSenha()) && Strings.isNotEmpty(usuario.getSenha())) {
+            final String senha = new BCryptPasswordEncoder().encode(usuario.getSenha());
+            usuario.setSenha(senha);
+        }
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+        return usuarioSalvo;
+    }
+
+
     public List<UsuarioInfo> findAll() {
         return usuarioRepository.findAll().parallelStream().map(usuario -> {
             return new UsuarioInfo(
@@ -47,6 +57,19 @@ public class UsuarioService {
                     usuario.getUltimoAcesso(),
                     usuario.getUuid(),
                     usuario.isAtivo());
+        }).filter(Objects::nonNull).toList();
+    }
+    public List<UsuarioInfo> findRepresentantesUnidade(String uuid){
+        return usuarioRepository.findRepresentantesUnidade(uuid).parallelStream().map(usuario -> {
+            return new UsuarioInfo(
+                usuario.getId(),
+                usuario.getCpf(),
+                usuario.getEmail(),
+                usuario.getNome(),
+                usuario.getDataCadastro(),
+                usuario.getUltimoAcesso(),
+                usuario.getUuid(),
+                usuario.isAtivo());
         }).filter(Objects::nonNull).toList();
     }
 

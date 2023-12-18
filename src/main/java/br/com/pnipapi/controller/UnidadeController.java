@@ -28,4 +28,19 @@ public class UnidadeController {
 
     @GetMapping("/getGerenciadoras/{tipo}")
     public List<Unidade> getGerenciadoras(@PathVariable String tipo) {return unidadeService.getGerenciadoras(tipo);}
+
+    @PostMapping("excluirUnidade")
+    public void delete(@RequestBody String uuid){
+        unidadeService.delete(uuid);
+    }
+
+    @GetMapping("findUnidadeByUuid/{uuid}")
+    public Unidade findUnidadeByUuid(@PathVariable String uuid){
+        return this.unidadeService.findByUuid(uuid);
+    }
+
+    @PostMapping("/update")
+    public ResponseDTO<Unidade> update(@RequestBody UnidadeFormDTO unidade){
+        return unidadeService.update(unidade);
+    }
 }
