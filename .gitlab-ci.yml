@@ -1,7 +1,7 @@
 stages:
     - build
     - deploy
-    - clear
+   # - clear
 
 build docker image:
     image: docker:20.10.5
@@ -36,15 +36,15 @@ deploy docker image:
         project: br.ufsm.lumac1/pnip-mpa/infra/review-env-deployer
         branch: main
 
-clear docker:
-    image: docker:20.10.5
-    stage: clear
-    variables:
-        SOURCE_BRANCH: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
-    script:
-        - ls
-    only:
-        refs:
-            - merge_requests
-        variables:
-            - $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+#clear docker:
+#    image: docker:20.10.5
+#    stage: clear
+#    variables:
+#        SOURCE_BRANCH: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+#    script:
+#        - ls
+#    only:
+#        refs:
+#            - merge_requests
+#        variables:
+#            - $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
