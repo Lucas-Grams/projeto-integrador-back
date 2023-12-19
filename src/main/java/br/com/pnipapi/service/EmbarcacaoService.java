@@ -17,13 +17,15 @@ public class EmbarcacaoService {
     }
 
     public List<EmbarcacaoDTO> findAllEmbarcacaoByRgpTieNome(String filter) {
-        List<Embarcacao> embarcacaos = embarcacaoRepository.findAllEmbarcacaoByRgpTieNome(filter);
+        List<Embarcacao> embarcacoes = embarcacaoRepository.findAllEmbarcacaoByRgpTieNome(filter);
 
-        return embarcacaos.stream().map(embarcacao -> {
+        return embarcacoes.stream().map(embarcacao -> {
+            String frota = embarcacaoRepository.findFrotaByIdEmbarcacao(embarcacao.getId());
+
             return new EmbarcacaoDTO(embarcacao.getId(), embarcacao.getNome(), embarcacao.getNumMarinhaTie(),
                 embarcacao.getNumMarinha(), embarcacao.getNumRgp(), embarcacao.getUf(), embarcacao.getPais(),
                 embarcacao.getAnoConstrucao(), embarcacao.getHp(), embarcacao.getComprimento(),
-                embarcacao.getPetrecho(), embarcacao.getCodigoIn());
+                embarcacao.getPetrecho(), embarcacao.getCodigoIn(), frota);
         }).toList();
 
     }

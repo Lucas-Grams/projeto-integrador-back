@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -20,5 +21,16 @@ public interface SolicitarHabilitacaoRepository extends JpaRepository<SolicitarH
         SELECT * FROM public.solicitar_habilitacao WHERE id_usuario = :idUsuario AND uuid_solicitacao = :uuid
     """)
     SolicitarHabilitacao findSolicitacaoByIdUsuarioAndUid(Long idUsuario, UUID uuid);
+
+    @Query(nativeQuery = true, value = """
+        select * from public.solicitar_habilitacao sh where sh.uuid_solicitacao = :uuid
+    """)
+    Optional<SolicitarHabilitacao> findByUuid(UUID uuid);
+
+    @Query(nativeQuery = true, value = """
+        select sh.* from public.solicitar_habilitacao sh 
+        where sh.status = :status
+    """)
+    List<SolicitarHabilitacao> findSolicitacoesByStatus(String status);
 
 }
