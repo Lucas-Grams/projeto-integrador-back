@@ -27,5 +27,6 @@ public record EmbarcacaoDTO (
     @NotNull @NotEmpty
     String petrecho,
     @NotNull @NotEmpty
-    String codigoIn) {
+    String codigoIn,
+    String frota) {
 }

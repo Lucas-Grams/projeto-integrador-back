@@ -1,11 +1,13 @@
 package br.com.pnipapi.service;
 
+import br.com.pnipapi.dto.FinalizarSolicitacaoDTO;
 import br.com.pnipapi.dto.HabilitarTRDTO;
 import br.com.pnipapi.dto.SolicitacaoHabilitacaoDTO;
+import br.com.pnipapi.dto.SolicitarHabilitacaoDTO;
 import br.com.pnipapi.dto.documentosAPI.*;
 import br.com.pnipapi.exception.BadRequestException;
-import br.com.pnipapi.model.SolicitarHabilitacao;
-import br.com.pnipapi.repository.SolicitarHabilitacaoRepository;
+import br.com.pnipapi.model.*;
+import br.com.pnipapi.repository.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -29,11 +31,33 @@ public class TRService {
 
     Logger LOGGER = LoggerFactory.getLogger(TRService.class);
 
+    StatusRepository statusRepository;
+    EmbarcacaoRepository embarcacaoRepository;
+    EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository;
     SolicitarHabilitacaoRepository solicitarHabilitacaoRepository;
+    StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository;
 
-    public TRService(ApiDocumentosRest apiDocumentosRest, SolicitarHabilitacaoRepository solicitarHabilitacaoRepository) {
+    public TRService(ApiDocumentosRest apiDocumentosRest, SolicitarHabilitacaoRepository solicitarHabilitacaoRepository,
+        StatusRepository statusRepository, StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository,
+        EmbarcacaoRepository embarcacaoRepository, EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository) {
+        this.statusRepository = statusRepository;
         this.apiDocumentosRest = apiDocumentosRest;
+        this.embarcacaoRepository = embarcacaoRepository;
         this.solicitarHabilitacaoRepository = solicitarHabilitacaoRepository;
+        this.statusSolicitarHabilitacaoRepository = statusSolicitarHabilitacaoRepository;
+        this.embarcacaoSolicitarHabilitacaoRepository = embarcacaoSolicitarHabilitacaoRepository;
+    }
+
+    public List<SolicitarHabilitacao> findAll() {
+        return solicitarHabilitacaoRepository.findAll();
+    }
+
+    public SolicitarHabilitacao findSolicitacaoByUuid(UUID uuid) {
+        return solicitarHabilitacaoRepository.findByUuid(uuid).get();
+    }
+
+    public List<SolicitarHabilitacao> findSolicitacoesByStatus(String status) {
+        return solicitarHabilitacaoRepository.findSolicitacoesByStatus(status);
     }
 
     @Transactional
@@ -54,13 +78,29 @@ public class TRService {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS,false);
 
+            SolicitarHabilitacaoDTO solicitarHabilitacaoDTO = new SolicitarHabilitacaoDTO();
+            solicitarHabilitacaoDTO.setDespachoDTO(despachoDTO);
+            solicitarHabilitacaoDTO.setHabilitarTRDTO(habilitarTRDTO);
 
             SolicitarHabilitacao solicitarHabilitacao = new SolicitarHabilitacao();
-            solicitarHabilitacao.setMetadado(convertJsonToString(habilitarTRDTO));
+            solicitarHabilitacao.setSolicitante(habilitarTRDTO.nome());
+
+            Status status = statusRepository.findByDescricao(StatusSolicitacao.EM_ANALISE.name()).get();
+            solicitarHabilitacao.setStatus(status.getDescricao());
+
+            solicitarHabilitacao.setMetadado(convertJsonToString(solicitarHabilitacaoDTO));
             solicitarHabilitacao.setIdUsuario(1L); // TODO REMOVER
             solicitarHabilitacao.setUuidSolicitacao(UUID.fromString(solicitacao.getUuid()));
             solicitarHabilitacao.setDataSolicitacao(new Date(solicitacao.getCriadoEm().getTime()));
-            solicitarHabilitacaoRepository.saveAndFlush(solicitarHabilitacao);
+            // TODO REVER
+            solicitarHabilitacao.setProtocolo(Long.toString(new java.util.Date().getTime()));
+
+            // Salva solicitação
+            SolicitarHabilitacao solicitarHabilitacaoSalvo = solicitarHabilitacaoRepository.saveAndFlush(solicitarHabilitacao);
+
+            // Salva status solicitação
+            statusSolicitarHabilitacaoRepository.saveAndFlush(new StatusSolicitarHabilitacao(status.getId(),
+                solicitarHabilitacaoSalvo.getId()));
 
             return "Solicitação realizada com sucesso";
         } catch (Exception e) {
@@ -125,7 +165,7 @@ public class TRService {
         return despachoDTO;
     }
 
-    private String convertJsonToString(HabilitarTRDTO solicitarHabilitacao) {
+    private String convertJsonToString(SolicitarHabilitacaoDTO solicitarHabilitacao) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
@@ -146,6 +186,39 @@ public class TRService {
         } catch (JsonProcessingException e) {
             LOGGER.warn(e.getMessage());
             throw new RuntimeException(e);
+        }
+    }
+
+    @Transactional
+    public String finalizarSolicitacao(FinalizarSolicitacaoDTO finalizarSolicitacaoDTO) {
+        try {
+
+            Optional<SolicitarHabilitacao> solicitacaoExist = solicitarHabilitacaoRepository.findByUuid(finalizarSolicitacaoDTO.getUuidSolicitacao());
+            if (!solicitacaoExist.isPresent()) {
+                throw new BadRequestException("Solicitação não encontrada.");
+            }
+
+            SolicitarHabilitacao solicitacao = solicitacaoExist.get();
+
+            String statusRequest = "deferir".equals(finalizarSolicitacaoDTO.getStatusSolicitacao())?
+                StatusSolicitacao.DEFERIDA.name(): StatusSolicitacao.INDEFERIDA.name();
+
+            solicitacao.setStatus(statusRepository.findByDescricao(statusRequest).get().getDescricao());
+            solicitacao.setObservacao(finalizarSolicitacaoDTO.getMsgSolicitacao());
+
+            solicitarHabilitacaoRepository.saveAndFlush(solicitacao);
+
+            // vincula as embarcações aprovadas ou reprovadas (manter histórico)
+            finalizarSolicitacaoDTO.getEmbarcacoes().forEach(embarcacao -> {
+                embarcacaoSolicitarHabilitacaoRepository.saveAndFlush(new EmbarcacaoSolicitarHabilitacao(embarcacao.getId(),
+                    solicitacao.getId(), embarcacao.getAprovado()));
+            });
+
+            return "Ação realizada com sucesso";
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.warn(e.getMessage());
+            return e.getMessage();
         }
     }
 
