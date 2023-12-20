@@ -30,7 +30,7 @@ public class UnidadeController {
     public List<Unidade> getGerenciadoras(@PathVariable String tipo) {return unidadeService.getGerenciadoras(tipo);}
 
     @PostMapping("inativarUnidade")
-    public void delete(@RequestBody String uuid){
+    public void inativa(@RequestBody String uuid){
         unidadeService.inativa(uuid);
     }
 

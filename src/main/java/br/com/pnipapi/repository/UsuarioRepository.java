@@ -14,7 +14,13 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     @Query(value = "SELECT u.* FROM usuario u " +
         "JOIN unidade_usuario uu ON uu.id_usuario = u.id " +
         "JOIN unidade un ON un.id = uu.id_unidade " +
-        "AND un.uuid = CAST(:uuid AS UUID)", nativeQuery = true)
+        "AND un.uuid = CAST(:uuid AS UUID) AND uu.ativo = true", nativeQuery = true)
     List<Usuario> findRepresentantesUnidade(@Param("uuid") String uuid);
+
+    @Query(value="SELECT u.* FROM usuario u " +
+        "JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
+        "JOIN unidade un ON un.id = uus.id_unidade " +
+        "WHERE un.id = :id_unidade ", nativeQuery = true)
+    List<Usuario> findRepresentantes(@Param("id_unidade") long id_unidade);
 
 }

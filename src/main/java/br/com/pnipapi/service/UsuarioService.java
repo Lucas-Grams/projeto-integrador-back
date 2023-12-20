@@ -76,4 +76,8 @@ public class UsuarioService {
         }).filter(Objects::nonNull).toList();
     }
 
+    List<Usuario>findRepresentantes(long id_unidade){
+        return this.usuarioRepository.findRepresentantes(id_unidade);
+    }
+
 }

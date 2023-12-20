@@ -8,6 +8,7 @@ import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.repository.EnderecoRepository;
 import br.com.pnipapi.repository.UnidadeRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ public class UnidadeService {
             unidadeSalva.setUsuarios(new ArrayList<>());
             unidadeSalva.getUsuarios().add(usuario);
         }
-
+        System.out.println(unidadeSalva.getUsuarios().size());
         unidadeSalva = unidadeRepository.save(unidadeSalva);
         unidadeRepository.salvarRepresentante(Math.toIntExact(unidadeSalva.getId()), Math.toIntExact(usuario.getId()));
 
@@ -58,12 +59,12 @@ public class UnidadeService {
         return unidadeRepository.getUnidadeByTipo(tipo);
     }
 
-    public void inativa(String uuid) {
+    @Transactional
+    public void inativa(String uuid){
         Unidade unidade = this.unidadeRepository.findByUuid(uuid);
-        unidade.setUsuarios(this.unidadeRepository.findRepresentantes(unidade.getId()));
-
+        unidade.setUsuarios(this.usuarioService.findRepresentantes(unidade.getId()));
         if(!unidade.getUsuarios().isEmpty()) {
-            unidadeRepository.updateRepresentante(Math.toIntExact(unidade.getId()));
+            unidadeRepository.updateRepresentante(unidade.getId());
         }
         unidade.setAtivo(false);
         unidadeRepository.save(unidade);
