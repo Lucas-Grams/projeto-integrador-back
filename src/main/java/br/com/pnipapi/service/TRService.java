@@ -8,16 +8,24 @@ import br.com.pnipapi.dto.documentosAPI.*;
 import br.com.pnipapi.exception.BadRequestException;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
+import br.com.pnipapi.service.storage.StorageObject;
+import br.com.pnipapi.service.storage.StorageService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -31,7 +39,14 @@ public class TRService {
 
     Logger LOGGER = LoggerFactory.getLogger(TRService.class);
 
+    StorageService storageService;
+
     StatusRepository statusRepository;
+
+    ArquivoRepository arquivoRepository;
+
+    ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository;
+
     EmbarcacaoRepository embarcacaoRepository;
     EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository;
     SolicitarHabilitacaoRepository solicitarHabilitacaoRepository;
@@ -193,12 +208,7 @@ public class TRService {
     public String finalizarSolicitacao(FinalizarSolicitacaoDTO finalizarSolicitacaoDTO) {
         try {
 
-            Optional<SolicitarHabilitacao> solicitacaoExist = solicitarHabilitacaoRepository.findByUuid(finalizarSolicitacaoDTO.getUuidSolicitacao());
-            if (!solicitacaoExist.isPresent()) {
-                throw new BadRequestException("Solicitação não encontrada.");
-            }
-
-            SolicitarHabilitacao solicitacao = solicitacaoExist.get();
+            SolicitarHabilitacao solicitacao = findByUuid(finalizarSolicitacaoDTO.getUuidSolicitacao());
 
             String statusRequest = "deferir".equals(finalizarSolicitacaoDTO.getStatusSolicitacao())?
                 StatusSolicitacao.DEFERIDA.name(): StatusSolicitacao.INDEFERIDA.name();
@@ -220,6 +230,93 @@ public class TRService {
             LOGGER.warn(e.getMessage());
             return e.getMessage();
         }
+    }
+
+    // upload certificado e diploma do TR
+    public String uploadAnexosSolicitacao(String uuid, List<Long> idsEmbarcacao, List<MultipartFile> file) {
+        SolicitarHabilitacao solicitarHabilitacao = findByUuid(UUID.fromString(uuid));
+
+        for (MultipartFile multipartFile : file) {
+            String fileName = multipartFile.getOriginalFilename();
+            String fileExtension = fileName.substring(fileName.lastIndexOf("."));
+            String newFileName = UUID.randomUUID() + fileExtension;
+            String path = "solicitacoes/" + uuid + "/anexos/" + newFileName;
+
+            Path pathToSave = Paths.get(path);
+
+            try {
+                storageService.save(pathToSave, multipartFile.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+            Arquivo arquivo = new Arquivo();
+            arquivo.setNome(fileName);
+            arquivo.setCaminho(path);
+            arquivo.setTamanho(multipartFile.getSize());
+            arquivo.setTipo(multipartFile.getContentType());
+
+            arquivo = arquivoRepository.saveAndFlush(arquivo);
+
+            if (CollectionUtils.isEmpty(idsEmbarcacao)) {
+                arquivoSolicitarHabilitacaoRepository.saveAndFlush(new ArquivoSolicitarHabilitacao(arquivo.getId(), solicitarHabilitacao.getId()));
+            } else {
+                // arquivos de embarcaçao - pegand pelo nome embarcacao_ID_1
+                Arquivo finalArquivo = arquivo;
+                idsEmbarcacao.forEach(id -> {
+                    if (finalArquivo.getNome().contains("ID_" + id)) {
+                        arquivoSolicitarHabilitacaoRepository.saveAndFlush(new ArquivoSolicitarHabilitacao(finalArquivo.getId(), solicitarHabilitacao.getId(), id));
+                    }
+                });
+            }
+        }
+        return "Arquivos salvos";
+    }
+
+    public StreamingResponseBody downloadAnexo(String uuid, String nome, Long idEmbarcacao) {
+        SolicitarHabilitacao solicitarHabilitacao = findByUuid(UUID.fromString(uuid));
+
+        if (Strings.isNotBlank(nome) && Strings.isNotEmpty(nome)) {
+            Optional<Arquivo> arquivo = arquivoRepository.findByIdSolicitacaoNome(solicitarHabilitacao.getId(), nome);
+            if (arquivo.isPresent()) {
+                return readFile(arquivo.get().getCaminho());
+            }
+        }
+
+        if (Objects.nonNull(idEmbarcacao)) {
+            Optional<Arquivo> arquivo = arquivoRepository.findByIdSolicitacaoIdEmbarcacao(solicitarHabilitacao.getId(), idEmbarcacao);
+            if (arquivo.isPresent()) {
+                return readFile(arquivo.get().getCaminho());
+            }
+        }
+
+        return null;
+    }
+
+    private StreamingResponseBody readFile(String caminho) {
+        try {
+            Path path = Paths.get(caminho);
+            Optional<StorageObject> file = storageService.read(path);
+            if (file.isPresent()) {
+                return file.<StreamingResponseBody>map(storageObject -> outputStream -> {
+                    outputStream.write(storageObject.toByteArray());
+                }).orElse(null);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.warn(e.getMessage());
+        }
+        return null;
+    }
+
+    private SolicitarHabilitacao findByUuid(UUID uuid) {
+        Optional<SolicitarHabilitacao> solicitacaoExist = solicitarHabilitacaoRepository.findByUuid(uuid);
+        if (!solicitacaoExist.isPresent()) {
+            LOGGER.warn("Solicitação não encontrada. UUID: " + uuid);
+            throw new BadRequestException("Solicitação não encontrada. UUID: "  + uuid);
+        }
+        return solicitacaoExist.get();
     }
 
 }

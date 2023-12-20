@@ -6,7 +6,10 @@ import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.SolicitacaoHabilitacaoDTO;
 import br.com.pnipapi.model.SolicitarHabilitacao;
 import br.com.pnipapi.service.TRService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.List;
 import java.util.UUID;
@@ -57,6 +60,24 @@ public class TRController {
     @PostMapping("/finalizar-solicitacao")
     ResponseDTO<String> finalizarSolicitacao(@RequestBody FinalizarSolicitacaoDTO finalizarSolicitacaoDTO) {
         return ResponseDTO.ok(trService.finalizarSolicitacao(finalizarSolicitacaoDTO));
+    }
+
+    @PostMapping("/upload/anexos/{uuid}")
+    public ResponseEntity<String> uploadAnexosSolicitacao(@PathVariable String uuid,
+        @RequestParam("arquivos") List<MultipartFile> arquivos,
+        @RequestParam("embarcacoes") List<Long> idsEmbarcacao) {
+        return ResponseEntity.ok(trService.uploadAnexosSolicitacao(uuid, idsEmbarcacao, arquivos));
+    }
+
+    @GetMapping("/download/anexos/{uuid}/{nome}")
+    public ResponseEntity<StreamingResponseBody> downloadAnexo(@PathVariable String uuid, @PathVariable String nome) {
+        return ResponseEntity.ok(trService.downloadAnexo(uuid, nome, null));
+    }
+
+    @GetMapping("/download/anexos/{uuid}/{idEmbarcacao}")
+    public ResponseEntity<StreamingResponseBody> downloadAnexo(@PathVariable String uuid,
+        @PathVariable Long idEmbarcacao) {
+        return ResponseEntity.ok(trService.downloadAnexo(uuid, null, idEmbarcacao));
     }
 
 }
