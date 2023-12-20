@@ -1,6 +1,7 @@
 package br.com.pnipapi.repository;
 
 import br.com.pnipapi.model.Unidade;
+import br.com.pnipapi.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,10 +25,16 @@ public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
 
     @Query(value = "INSERT INTO unidade_usuario (id_unidade, id_usuario, ativo) " +
         "VALUES (:id_unidade, :id_usuario, true)", nativeQuery = true)
-    Integer salvarRepresentante(@Param("id_unidade") int id_unidade, @Param("id_usuario") int id_usuario);
+    void salvarRepresentante(@Param("id_unidade") int id_unidade, @Param("id_usuario") int id_usuario);
+
+    @Query(value="SELECT u.* FROM usuario u " +
+        "JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
+        "JOIN unidade un ON un.id = uus.id_unidade " +
+        "WHERE un.id = :id_unidade ", nativeQuery = true)
+    List<Usuario> findRepresentantes(@Param("id_unidade") long id_unidade);
 
     @Query(value="UPDATE unidade_usuario SET ativo = false  WHERE id_unidade =:id_unidade", nativeQuery = true)
-    Unidade updateRepresentante(@Param("id_unidade") int id_unidade);
+    void updateRepresentante(@Param("id_unidade") int id_unidade);
 
     List<Unidade> findAllByAtivo(boolean ativo);
 }

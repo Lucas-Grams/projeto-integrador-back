@@ -43,8 +43,9 @@ public class UnidadeService {
             unidadeSalva.setUsuarios(new ArrayList<>());
             unidadeSalva.getUsuarios().add(usuario);
         }
-        System.out.println(unidadeSalva.getUsuarios().toString());
+
         unidadeSalva = unidadeRepository.save(unidadeSalva);
+        unidadeRepository.salvarRepresentante(Math.toIntExact(unidadeSalva.getId()), Math.toIntExact(usuario.getId()));
 
         return ResponseDTO.ok( "Unidade cadastrada com sucesso!", unidadeSalva);
     }
@@ -59,6 +60,7 @@ public class UnidadeService {
 
     public void inativa(String uuid) {
         Unidade unidade = this.unidadeRepository.findByUuid(uuid);
+        unidade.setUsuarios(this.unidadeRepository.findRepresentantes(unidade.getId()));
 
         if(!unidade.getUsuarios().isEmpty()) {
             unidadeRepository.updateRepresentante(Math.toIntExact(unidade.getId()));
