@@ -6,9 +6,11 @@ import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.SolicitacaoHabilitacaoDTO;
 import br.com.pnipapi.model.SolicitarHabilitacao;
 import br.com.pnipapi.service.TRService;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -57,6 +59,11 @@ public class TRController {
     @PostMapping("/finalizar-solicitacao")
     ResponseDTO<String> finalizarSolicitacao(@RequestBody FinalizarSolicitacaoDTO finalizarSolicitacaoDTO) {
         return ResponseDTO.ok(trService.finalizarSolicitacao(finalizarSolicitacaoDTO));
+    }
+
+    @GetMapping(value = "/download/anexos/{uuid}/{nome}", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> downloadAnexo(@PathVariable String uuid, @PathVariable String nome) {
+        return ResponseEntity.of(Optional.of(trService.downloadAnexo(uuid, nome)));
     }
 
 }

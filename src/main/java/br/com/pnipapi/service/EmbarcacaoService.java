@@ -25,7 +25,7 @@ public class EmbarcacaoService {
             return new EmbarcacaoDTO(embarcacao.getId(), embarcacao.getNome(), embarcacao.getNumMarinhaTie(),
                 embarcacao.getNumMarinha(), embarcacao.getNumRgp(), embarcacao.getUf(), embarcacao.getPais(),
                 embarcacao.getAnoConstrucao(), embarcacao.getHp(), embarcacao.getComprimento(),
-                embarcacao.getPetrecho(), embarcacao.getCodigoIn(), frota);
+                embarcacao.getPetrecho(), embarcacao.getCodigoIn(), frota, null, null);
         }).toList();
 
     }
