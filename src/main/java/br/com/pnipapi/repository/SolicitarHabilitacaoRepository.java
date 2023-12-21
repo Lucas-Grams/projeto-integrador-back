@@ -13,7 +13,10 @@ import java.util.UUID;
 public interface SolicitarHabilitacaoRepository extends JpaRepository<SolicitarHabilitacao, Long>  {
 
     @Query(nativeQuery = true, value = """ 
-        SELECT id, id_usuario, cast(uuid_solicitacao as text), data_solicitacao FROM public.solicitar_habilitacao WHERE id_usuario = :idUsuario ORDER BY id DESC
+        SELECT id, id_usuario, cast(uuid_solicitacao as text), status, data_solicitacao 
+        FROM public.solicitar_habilitacao 
+        WHERE id_usuario = :idUsuario 
+        ORDER BY id DESC
     """)
     List<Object[]> findAllSolicitacoesByIdUsuario(Long idUsuario);
 

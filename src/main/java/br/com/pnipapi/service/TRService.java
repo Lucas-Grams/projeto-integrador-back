@@ -1,9 +1,6 @@
 package br.com.pnipapi.service;
 
-import br.com.pnipapi.dto.FinalizarSolicitacaoDTO;
-import br.com.pnipapi.dto.HabilitarTRDTO;
-import br.com.pnipapi.dto.SolicitacaoHabilitacaoDTO;
-import br.com.pnipapi.dto.SolicitarHabilitacaoDTO;
+import br.com.pnipapi.dto.*;
 import br.com.pnipapi.dto.documentosAPI.*;
 import br.com.pnipapi.exception.BadRequestException;
 import br.com.pnipapi.model.*;
@@ -20,10 +17,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Date;
@@ -54,13 +49,18 @@ public class TRService {
 
     public TRService(ApiDocumentosRest apiDocumentosRest, SolicitarHabilitacaoRepository solicitarHabilitacaoRepository,
         StatusRepository statusRepository, StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository,
-        EmbarcacaoRepository embarcacaoRepository, EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository) {
+        EmbarcacaoRepository embarcacaoRepository, EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository,
+        StorageService storageService, ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository,
+        ArquivoRepository arquivoRepository) {
         this.statusRepository = statusRepository;
         this.apiDocumentosRest = apiDocumentosRest;
         this.embarcacaoRepository = embarcacaoRepository;
         this.solicitarHabilitacaoRepository = solicitarHabilitacaoRepository;
         this.statusSolicitarHabilitacaoRepository = statusSolicitarHabilitacaoRepository;
         this.embarcacaoSolicitarHabilitacaoRepository = embarcacaoSolicitarHabilitacaoRepository;
+        this.storageService = storageService;
+        this.arquivoSolicitarHabilitacaoRepository = arquivoSolicitarHabilitacaoRepository;
+        this.arquivoRepository = arquivoRepository;
     }
 
     public List<SolicitarHabilitacao> findAll() {
@@ -78,6 +78,8 @@ public class TRService {
     @Transactional
     public String solicitarHabilitacao(HabilitarTRDTO habilitarTRDTO) {
         try {
+
+            List<ArquivoAnexoSolicitacaoDTO> anexos = extrairAnexosDaSolicitacao(habilitarTRDTO);
 
             ProcessoDTO solicitacao = apiDocumentosRest.criarSolicitacaoHabilitacaoTR();
             if (Objects.isNull(solicitacao)) {
@@ -98,7 +100,7 @@ public class TRService {
             solicitarHabilitacaoDTO.setHabilitarTRDTO(habilitarTRDTO);
 
             SolicitarHabilitacao solicitarHabilitacao = new SolicitarHabilitacao();
-            solicitarHabilitacao.setSolicitante(habilitarTRDTO.nome());
+            solicitarHabilitacao.setSolicitante(habilitarTRDTO.getNome());
 
             Status status = statusRepository.findByDescricao(StatusSolicitacao.EM_ANALISE.name()).get();
             solicitarHabilitacao.setStatus(status.getDescricao());
@@ -112,6 +114,9 @@ public class TRService {
 
             // Salva solicitação
             SolicitarHabilitacao solicitarHabilitacaoSalvo = solicitarHabilitacaoRepository.saveAndFlush(solicitarHabilitacao);
+
+            // Upload dos anexo
+            uploadAnexoSolicitacao(solicitarHabilitacaoSalvo, anexos);
 
             // Salva status solicitação
             statusSolicitarHabilitacaoRepository.saveAndFlush(new StatusSolicitarHabilitacao(status.getId(),
@@ -135,7 +140,8 @@ public class TRService {
                 Long.parseLong(result[0].toString()),
                 Long.parseLong(result[1].toString()),
                 result[2].toString(),
-                result[3].toString()
+                result[3].toString(),
+                result[4].toString()
             )).collect(Collectors.toList());
     }
 
@@ -144,9 +150,51 @@ public class TRService {
         Long idUsuario = 1L;
         SolicitarHabilitacao solicitacao = solicitarHabilitacaoRepository.findSolicitacaoByIdUsuarioAndUid(idUsuario, UUID.fromString(uuid));
         if (solicitacao != null) {
-            return convertStringToJson(solicitacao.getMetadado());
+            SolicitarHabilitacaoDTO solicitarHabilitacaoDTO = convertStringToJson(solicitacao.getMetadado());
+            return solicitarHabilitacaoDTO.getHabilitarTRDTO();
         }
         return null;
+    }
+
+    private List<ArquivoAnexoSolicitacaoDTO> extrairAnexosDaSolicitacao(HabilitarTRDTO dto) {
+        List<ArquivoAnexoSolicitacaoDTO> anexos = new ArrayList<>();
+        if (StringUtils.hasText(dto.getCopiaHabilitacao()) && StringUtils.hasText(dto.getCopiaHabilitacaoBase64())) {
+            String nomeUpload = String.format("%s.pdf", UUID.randomUUID());
+            anexos.add(ArquivoAnexoSolicitacaoDTO.builder()
+                .tipoAnexo(ArquivoAnexoSolicitacaoDTO.TipoAnexo.COPIA_HABILITACAO)
+                .nomeUpload(nomeUpload)
+                .nomeOriginal(dto.getCopiaHabilitacao())
+                .base64(dto.getCopiaHabilitacaoBase64())
+                .build());
+            dto.setCopiaHabilitacao(nomeUpload);
+            dto.setCopiaHabilitacaoBase64(null);
+        }
+        if (StringUtils.hasText(dto.getDiplomaCertificacao()) && StringUtils.hasText(dto.getDiplomaCertificacaoBase64())) {
+            String nomeUpload = String.format("%s.pdf", UUID.randomUUID());
+            anexos.add(ArquivoAnexoSolicitacaoDTO.builder()
+                .tipoAnexo(ArquivoAnexoSolicitacaoDTO.TipoAnexo.DIPLOMA_CERTIFICADO)
+                .nomeUpload(nomeUpload)
+                .nomeOriginal(dto.getDiplomaCertificacao())
+                .base64(dto.getDiplomaCertificacaoBase64())
+                .build());
+            dto.setDiplomaCertificacao(nomeUpload);
+            dto.setDiplomaCertificacaoBase64(null);
+        }
+        if (!CollectionUtils.isEmpty(dto.getEmbarcacoes())) {
+            dto.getEmbarcacoes().stream().forEach(e -> {
+                String nomeUpload = String.format("%s.pdf", UUID.randomUUID());
+                anexos.add(ArquivoAnexoSolicitacaoDTO.builder()
+                    .tipoAnexo(ArquivoAnexoSolicitacaoDTO.TipoAnexo.EMBARCACAO)
+                    .nomeUpload(nomeUpload)
+                    .nomeOriginal(e.getDeclaracaoProprietario())
+                    .base64(e.getDeclaracaoProprietarioBase64())
+                    .idEmbarcacao(e.getId())
+                    .build());
+                e.setDeclaracaoProprietario(nomeUpload);
+                e.setDeclaracaoProprietarioBase64(null);
+            });
+        }
+        return anexos;
     }
 
     private DespachoDTO buildDespacho(HabilitarTRDTO habilitarTRDTO) {
@@ -192,12 +240,12 @@ public class TRService {
         }
     }
 
-    private HabilitarTRDTO convertStringToJson(String json) {
+    private SolicitarHabilitacaoDTO convertStringToJson(String json) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());
             mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            return mapper.readValue(json, HabilitarTRDTO.class);
+            return mapper.readValue(json, SolicitarHabilitacaoDTO.class);
         } catch (JsonProcessingException e) {
             LOGGER.warn(e.getMessage());
             throw new RuntimeException(e);
@@ -232,76 +280,49 @@ public class TRService {
         }
     }
 
-    // upload certificado e diploma do TR
-    public String uploadAnexosSolicitacao(String uuid, List<Long> idsEmbarcacao, List<MultipartFile> file) {
-        SolicitarHabilitacao solicitarHabilitacao = findByUuid(UUID.fromString(uuid));
-
-        for (MultipartFile multipartFile : file) {
-            String fileName = multipartFile.getOriginalFilename();
-            String fileExtension = fileName.substring(fileName.lastIndexOf("."));
-            String newFileName = UUID.randomUUID() + fileExtension;
-            String path = "solicitacoes/" + uuid + "/anexos/" + newFileName;
-
-            Path pathToSave = Paths.get(path);
-
-            try {
-                storageService.save(pathToSave, multipartFile.getBytes());
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
+    private void uploadAnexoSolicitacao(SolicitarHabilitacao solicitacao, List<ArquivoAnexoSolicitacaoDTO> anexos) {
+        anexos.forEach(anexo -> {
+            String filepath = String.format("solicitacao/%s/anexo/%s", solicitacao.getUuidSolicitacao().toString(), anexo.getNomeUpload());
+            Path path = Paths.get(filepath);
+            storageService.save(path, getBytesFromBase64(anexo.getBase64()));
 
             Arquivo arquivo = new Arquivo();
-            arquivo.setNome(fileName);
-            arquivo.setCaminho(path);
-            arquivo.setTamanho(multipartFile.getSize());
-            arquivo.setTipo(multipartFile.getContentType());
-
+            arquivo.setNome(anexo.getNomeUpload());
+            arquivo.setOrigemArquivo(anexo.getNomeOriginal());
+            arquivo.setCaminho(filepath);
+            arquivo.setTipo("application/pdf");
             arquivo = arquivoRepository.saveAndFlush(arquivo);
 
-            if (CollectionUtils.isEmpty(idsEmbarcacao)) {
-                arquivoSolicitarHabilitacaoRepository.saveAndFlush(new ArquivoSolicitarHabilitacao(arquivo.getId(), solicitarHabilitacao.getId()));
-            } else {
-                // arquivos de embarcaçao - pegand pelo nome embarcacao_ID_1
-                Arquivo finalArquivo = arquivo;
-                idsEmbarcacao.forEach(id -> {
-                    if (finalArquivo.getNome().contains("ID_" + id)) {
-                        arquivoSolicitarHabilitacaoRepository.saveAndFlush(new ArquivoSolicitarHabilitacao(finalArquivo.getId(), solicitarHabilitacao.getId(), id));
-                    }
-                });
-            }
-        }
-        return "Arquivos salvos";
+            arquivoSolicitarHabilitacaoRepository.saveAndFlush(new ArquivoSolicitarHabilitacao(
+                arquivo.getId(), solicitacao.getId(), anexo.getIdEmbarcacao()));
+        });
     }
 
-    public StreamingResponseBody downloadAnexo(String uuid, String nome, Long idEmbarcacao) {
-        SolicitarHabilitacao solicitarHabilitacao = findByUuid(UUID.fromString(uuid));
+    private byte[] getBytesFromBase64(String base64) {
+        String prefix = "data:application/pdf;base64,";
+        if (base64.startsWith(prefix)) {
+            base64 = base64.substring(prefix.length());
+        }
+        return Base64.getDecoder().decode(base64);
+    }
 
+    public byte[] downloadAnexo(String uuid, String nome) {
+        SolicitarHabilitacao solicitarHabilitacao = findByUuid(UUID.fromString(uuid));
         if (Strings.isNotBlank(nome) && Strings.isNotEmpty(nome)) {
             Optional<Arquivo> arquivo = arquivoRepository.findByIdSolicitacaoNome(solicitarHabilitacao.getId(), nome);
             if (arquivo.isPresent()) {
                 return readFile(arquivo.get().getCaminho());
             }
         }
-
-        if (Objects.nonNull(idEmbarcacao)) {
-            Optional<Arquivo> arquivo = arquivoRepository.findByIdSolicitacaoIdEmbarcacao(solicitarHabilitacao.getId(), idEmbarcacao);
-            if (arquivo.isPresent()) {
-                return readFile(arquivo.get().getCaminho());
-            }
-        }
-
         return null;
     }
 
-    private StreamingResponseBody readFile(String caminho) {
+    private byte[] readFile(String caminho) {
         try {
             Path path = Paths.get(caminho);
             Optional<StorageObject> file = storageService.read(path);
             if (file.isPresent()) {
-                return file.<StreamingResponseBody>map(storageObject -> outputStream -> {
-                    outputStream.write(storageObject.toByteArray());
-                }).orElse(null);
+                return file.get().toByteArray();
             }
         } catch (Exception e) {
             e.printStackTrace();

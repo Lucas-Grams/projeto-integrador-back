@@ -4,5 +4,6 @@ public record SolicitacaoHabilitacaoDTO(
     Long id,
     Long idUsuario,
     String uuid,
+    String status,
     String dataSolicitacao) {
 }
