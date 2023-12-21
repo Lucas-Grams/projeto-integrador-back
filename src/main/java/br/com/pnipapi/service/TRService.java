@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Date;
@@ -78,6 +79,7 @@ public class TRService {
     @Transactional
     public String solicitarHabilitacao(HabilitarTRDTO habilitarTRDTO) {
         try {
+            validarSolicitacaoHabilitacao();
 
             List<ArquivoAnexoSolicitacaoDTO> anexos = extrairAnexosDaSolicitacao(habilitarTRDTO);
 
@@ -127,6 +129,13 @@ public class TRService {
             e.printStackTrace();
             LOGGER.warn(e.getMessage());
             return e.getMessage();
+        }
+    }
+
+    private void validarSolicitacaoHabilitacao() throws AccessDeniedException {
+        String status = findStatusUltimaSolicatacao();
+        if (StringUtils.hasText(status) && status.equals("EM_ANALISE") || status.equals("DEFERIDA")) {
+            throw new AccessDeniedException("Status não permitido para solicitar habilitação.");
         }
     }
 
@@ -338,6 +347,16 @@ public class TRService {
             throw new BadRequestException("Solicitação não encontrada. UUID: "  + uuid);
         }
         return solicitacaoExist.get();
+    }
+
+    public String findStatusUltimaSolicatacao() {
+        // TODO: id do usuario logado
+        Long idUsuario = 1L;
+        Optional<Object> status = solicitarHabilitacaoRepository.findStatusByLastSolicitacao(idUsuario);
+        if (status.isPresent() && StringUtils.hasText(status.get().toString())) {
+            return status.get().toString();
+        }
+        return null;
     }
 
 }
