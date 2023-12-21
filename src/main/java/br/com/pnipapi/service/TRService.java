@@ -7,6 +7,7 @@ import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
 import br.com.pnipapi.service.storage.StorageObject;
 import br.com.pnipapi.service.storage.StorageService;
+import br.com.pnipapi.utils.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -108,7 +109,7 @@ public class TRService {
             solicitarHabilitacao.setStatus(status.getDescricao());
 
             solicitarHabilitacao.setMetadado(convertJsonToString(solicitarHabilitacaoDTO));
-            solicitarHabilitacao.setIdUsuario(1L); // TODO REMOVER
+            solicitarHabilitacao.setIdUsuario(User.getIdCurrentUser());
             solicitarHabilitacao.setUuidSolicitacao(UUID.fromString(solicitacao.getUuid()));
             solicitarHabilitacao.setDataSolicitacao(new Date(solicitacao.getCriadoEm().getTime()));
             // TODO REVER
@@ -140,8 +141,7 @@ public class TRService {
     }
 
     public List<SolicitacaoHabilitacaoDTO> minhasSolicitacoes() {
-        // TODO: id do usuario logado
-        Long idUsuario = 1L;
+        Long idUsuario = User.getIdCurrentUser();
         List<Object[]> results = solicitarHabilitacaoRepository.findAllSolicitacoesByIdUsuario(idUsuario);
         if (CollectionUtils.isEmpty(results)) return null;
         return results.stream().map(result ->
@@ -155,8 +155,7 @@ public class TRService {
     }
 
     public HabilitarTRDTO detalhesSolicitacao(String uuid) {
-        // TODO: id do usuario logado
-        Long idUsuario = 1L;
+        Long idUsuario = User.getIdCurrentUser();
         SolicitarHabilitacao solicitacao = solicitarHabilitacaoRepository.findSolicitacaoByIdUsuarioAndUid(idUsuario, UUID.fromString(uuid));
         if (solicitacao != null) {
             SolicitarHabilitacaoDTO solicitarHabilitacaoDTO = convertStringToJson(solicitacao.getMetadado());
@@ -208,7 +207,7 @@ public class TRService {
 
     private DespachoDTO buildDespacho(HabilitarTRDTO habilitarTRDTO) {
         DespachoDTO despachoDTO = new DespachoDTO();
-        despachoDTO.setUsuarioAcao(1); // TODO REMOVER USUARIO ADMIN
+        despachoDTO.setUsuarioAcao(User.getIdCurrentUser().intValue());
         despachoDTO.setCriadoEm(Timestamp.from(Instant.now()));
         despachoDTO.setCodigoDescricao("HABILITACAO_TR");
         despachoDTO.setKind("TRAMITACAO");
@@ -350,8 +349,7 @@ public class TRService {
     }
 
     public String findStatusUltimaSolicatacao() {
-        // TODO: id do usuario logado
-        Long idUsuario = 1L;
+        Long idUsuario = User.getIdCurrentUser();
         Optional<Object> status = solicitarHabilitacaoRepository.findStatusByLastSolicitacao(idUsuario);
         if (status.isPresent() && StringUtils.hasText(status.get().toString())) {
             return status.get().toString();
