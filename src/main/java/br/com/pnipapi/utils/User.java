@@ -35,7 +35,7 @@ public class User {
         KeycloakSecurityContext session = principal.getKeycloakSecurityContext();
         AccessToken accessToken = session.getToken();
 
-        return Long.parseLong(accessToken.getSubject().split(":")[2]);
+        return Long.parseLong(accessToken.getOtherClaims().get("userId").toString());
     }
 
     public static Optional<UserPrincipal> getOptionalUser() {

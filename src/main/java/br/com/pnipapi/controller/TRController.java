@@ -56,6 +56,11 @@ public class TRController {
         return ResponseDTO.ok(trService.findSolicitacoesByStatus(status));
     }
 
+    @GetMapping("/find/status/ultima/solicatacao")
+    ResponseDTO<String> findStatusUltimaSolicatacao() {
+        return ResponseDTO.ok(trService.findStatusUltimaSolicatacao());
+    }
+
     @PostMapping("/finalizar-solicitacao")
     ResponseDTO<String> finalizarSolicitacao(@RequestBody FinalizarSolicitacaoDTO finalizarSolicitacaoDTO) {
         return ResponseDTO.ok(trService.finalizarSolicitacao(finalizarSolicitacaoDTO));
