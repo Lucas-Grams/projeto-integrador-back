@@ -64,10 +64,10 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-            .antMatchers(HttpMethod.GET, "/**").permitAll()
+            /*.antMatchers(HttpMethod.GET, "/**").permitAll()
             .antMatchers(HttpMethod.POST, "/**").permitAll()
             .antMatchers(HttpMethod.PUT, "/**").permitAll()
-            .antMatchers(HttpMethod.DELETE, "/**").permitAll()
+            .antMatchers(HttpMethod.DELETE, "/**").permitAll()*/
             .anyRequest()
             .authenticated();
     }
