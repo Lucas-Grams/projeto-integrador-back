@@ -27,4 +27,5 @@ ENV SERVER_SERVLET_CONTEXT_PATH="/"
 EXPOSE 8080
 
 
+
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/urandom", "-jar", "/api.jar"]
