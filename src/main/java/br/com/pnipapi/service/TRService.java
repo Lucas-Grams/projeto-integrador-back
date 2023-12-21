@@ -115,6 +115,8 @@ public class TRService {
             // TODO REVER
             solicitarHabilitacao.setProtocolo(Long.toString(new java.util.Date().getTime()));
 
+            validarEmbarcacoes(habilitarTRDTO);
+
             // Salva solicitação
             SolicitarHabilitacao solicitarHabilitacaoSalvo = solicitarHabilitacaoRepository.saveAndFlush(solicitarHabilitacao);
 
@@ -130,6 +132,18 @@ public class TRService {
             e.printStackTrace();
             LOGGER.warn(e.getMessage());
             return e.getMessage();
+        }
+    }
+
+    private void validarEmbarcacoes(HabilitarTRDTO habilitarTRDTO) {
+        if (habilitarTRDTO != null && !CollectionUtils.isEmpty(habilitarTRDTO.getEmbarcacoes())) {
+            habilitarTRDTO.getEmbarcacoes().forEach(embarcacao -> {
+                Optional<SolicitarHabilitacao> solicitarHabilitacao =
+                    solicitarHabilitacaoRepository.findSolicitacaoByIdEmbarcacao(embarcacao.getId());
+                if (solicitarHabilitacao.isPresent()) {
+                    throw new BadRequestException("Embarcação vínculada em outra solicitação. Embarcação: " + embarcacao.getNome());
+                }
+            });
         }
     }
 
