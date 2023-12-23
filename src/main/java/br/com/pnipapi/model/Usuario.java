@@ -8,6 +8,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.sql.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -59,4 +60,14 @@ public class Usuario {
 
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;
+
+    @ManyToMany
+    @JoinTable(name="usuario_permissao", schema = "public",
+        joinColumns = {@JoinColumn(name="id_usuario",referencedColumnName = "id")},
+        inverseJoinColumns = {@JoinColumn(name="id_permissao",referencedColumnName = "id")})
+    private List<Permissao> permissoes;
+
+    @OneToOne
+    @JoinColumn(name = "id_endereco")
+    private Endereco endereco;
 }

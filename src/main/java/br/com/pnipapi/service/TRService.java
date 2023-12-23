@@ -40,6 +40,14 @@ public class TRService {
 
     StatusRepository statusRepository;
 
+    EnderecoRepository enderecoRepository;
+
+    UsuarioRepository usuarioRepository;
+
+    PermissaoRepository permissaoRepository;
+
+    UsuarioService usuarioService;
+
     ArquivoRepository arquivoRepository;
 
     ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository;
@@ -53,7 +61,8 @@ public class TRService {
         StatusRepository statusRepository, StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository,
         EmbarcacaoRepository embarcacaoRepository, EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository,
         StorageService storageService, ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository,
-        ArquivoRepository arquivoRepository) {
+        ArquivoRepository arquivoRepository, UsuarioRepository usuarioRepository, UsuarioService usuarioService,
+        PermissaoRepository permissaoRepository, EnderecoRepository enderecoRepository) {
         this.statusRepository = statusRepository;
         this.apiDocumentosRest = apiDocumentosRest;
         this.embarcacaoRepository = embarcacaoRepository;
@@ -63,6 +72,10 @@ public class TRService {
         this.storageService = storageService;
         this.arquivoSolicitarHabilitacaoRepository = arquivoSolicitarHabilitacaoRepository;
         this.arquivoRepository = arquivoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.usuarioService = usuarioService;
+        this.permissaoRepository = permissaoRepository;
+        this.enderecoRepository = enderecoRepository;
     }
 
     public List<SolicitarHabilitacao> findAll() {
@@ -83,6 +96,8 @@ public class TRService {
             validarSolicitacaoHabilitacao();
 
             List<ArquivoAnexoSolicitacaoDTO> anexos = extrairAnexosDaSolicitacao(habilitarTRDTO);
+
+            criarUsuarioConvidado(habilitarTRDTO);
 
             ProcessoDTO solicitacao = apiDocumentosRest.criarSolicitacaoHabilitacaoTR();
             if (Objects.isNull(solicitacao)) {
@@ -135,6 +150,30 @@ public class TRService {
         }
     }
 
+    private void criarUsuarioConvidado(HabilitarTRDTO habilitarTRDTO) {
+        if (habilitarTRDTO != null && Strings.isNotEmpty(habilitarTRDTO.getCpf()) && Strings.isNotBlank(habilitarTRDTO.getCpf())) {
+            Optional<Usuario> usuario = usuarioRepository.findUsuarioByCpf(habilitarTRDTO.getCpf());
+            if (!usuario.isPresent()) {
+                Endereco endereco = new Endereco(habilitarTRDTO.getLogradouro(), habilitarTRDTO.getCep(),
+                    habilitarTRDTO.getNumero(), habilitarTRDTO.getComplemento(), habilitarTRDTO.getMunicipio(),
+                    habilitarTRDTO.getUf());
+
+                endereco = enderecoRepository.saveAndFlush(endereco);
+
+                Usuario newUsuario = new Usuario();
+                newUsuario.setSenha("123456");
+                newUsuario.setCpf(habilitarTRDTO.getCpf());
+                newUsuario.setNome(habilitarTRDTO.getNome());
+                newUsuario.setEmail(habilitarTRDTO.getEmail());
+                newUsuario.setAtivo(Boolean.TRUE);
+                newUsuario.setEndereco(endereco);
+                newUsuario.setPermissoes(new ArrayList<>(List.of(permissaoRepository.findPermissaoByName("convidado"))));
+
+                usuarioService.salvar(newUsuario);
+            }
+        }
+    }
+
     private void validarEmbarcacoes(HabilitarTRDTO habilitarTRDTO) {
         if (habilitarTRDTO != null && !CollectionUtils.isEmpty(habilitarTRDTO.getEmbarcacoes())) {
             habilitarTRDTO.getEmbarcacoes().forEach(embarcacao -> {
@@ -149,7 +188,7 @@ public class TRService {
 
     private void validarSolicitacaoHabilitacao() throws AccessDeniedException {
         String status = findStatusUltimaSolicatacao();
-        if (StringUtils.hasText(status) && status.equals("EM_ANALISE") || status.equals("DEFERIDA")) {
+        if (StringUtils.hasText(status) && "EM_ANALISE".equals(status) || "DEFERIDA".equals(status)) {
             throw new AccessDeniedException("Status não permitido para solicitar habilitação.");
         }
     }

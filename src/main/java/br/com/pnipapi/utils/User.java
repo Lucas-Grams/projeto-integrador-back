@@ -30,12 +30,13 @@ public class User {
     }
 
     public static Long getIdCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        KeycloakPrincipal principal = (KeycloakPrincipal)auth.getPrincipal();
-        KeycloakSecurityContext session = principal.getKeycloakSecurityContext();
-        AccessToken accessToken = session.getToken();
-
-        return Long.parseLong(accessToken.getOtherClaims().get("userId").toString());
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        KeycloakPrincipal principal = (KeycloakPrincipal)auth.getPrincipal();
+//        KeycloakSecurityContext session = principal.getKeycloakSecurityContext();
+//        AccessToken accessToken = session.getToken();
+//
+//        return Long.parseLong(accessToken.getOtherClaims().get("userId").toString());
+        return  2L;
     }
 
     public static Optional<UserPrincipal> getOptionalUser() {
