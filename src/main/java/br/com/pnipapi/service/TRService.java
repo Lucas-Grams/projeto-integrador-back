@@ -161,8 +161,8 @@ public class TRService {
                 endereco = enderecoRepository.saveAndFlush(endereco);
 
                 Usuario newUsuario = new Usuario();
-                newUsuario.setSenha("123456");
-                newUsuario.setCpf(habilitarTRDTO.getCpf());
+                newUsuario.setSenha(User.generatePasswordBCrypt("123456"));
+                newUsuario.setCpf(habilitarTRDTO.getCpf().replaceAll("[^0-9]", "")); // remove (./-)
                 newUsuario.setNome(habilitarTRDTO.getNome());
                 newUsuario.setEmail(habilitarTRDTO.getEmail());
                 newUsuario.setAtivo(Boolean.TRUE);
