@@ -1,5 +1,6 @@
 package br.com.pnipapi.utils;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.security.UserPrincipal;
 import org.keycloak.KeycloakPrincipal;
@@ -31,6 +32,9 @@ public class User {
 
     public static Long getIdCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth.getPrincipal() == "anonymousUser") {
+            return null;
+        }
         KeycloakPrincipal principal = (KeycloakPrincipal)auth.getPrincipal();
         KeycloakSecurityContext session = principal.getKeycloakSecurityContext();
         AccessToken accessToken = session.getToken();
@@ -46,6 +50,10 @@ public class User {
 
     public static String randomPassword() {
         return UUID.randomUUID().toString().toUpperCase().replace("-", "").substring(1, 12);
+    }
+
+    public static String generatePasswordBCrypt(String senha) {
+        return BCrypt.withDefaults().hashToString(12, senha.toCharArray());
     }
 
 }

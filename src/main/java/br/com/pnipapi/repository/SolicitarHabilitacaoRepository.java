@@ -37,7 +37,7 @@ public interface SolicitarHabilitacaoRepository extends JpaRepository<SolicitarH
     List<SolicitarHabilitacao> findSolicitacoesByStatus(String status);
 
     @Query(nativeQuery = true, value = """
-        SELECT status FROM public.solicitar_habilitacao WHERE id_usuario = 1 ORDER BY id DESC LIMIT 1;
+        SELECT status FROM public.solicitar_habilitacao WHERE id_usuario = :idUsuario ORDER BY id DESC LIMIT 1;
     """)
     Optional<Object> findStatusByLastSolicitacao(Long idUsuario);
 

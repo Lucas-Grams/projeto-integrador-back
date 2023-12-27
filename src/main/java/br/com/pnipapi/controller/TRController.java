@@ -56,7 +56,7 @@ public class TRController {
         return ResponseDTO.ok(trService.findSolicitacoesByStatus(status));
     }
 
-    @GetMapping("/find/status/ultima/solicatacao")
+    @GetMapping("/find/status/ultima/solicitacao")
     ResponseDTO<String> findStatusUltimaSolicatacao() {
         return ResponseDTO.ok(trService.findStatusUltimaSolicatacao());
     }
