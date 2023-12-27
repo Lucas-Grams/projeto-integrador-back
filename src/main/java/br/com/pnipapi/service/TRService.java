@@ -57,6 +57,19 @@ public class TRService {
     SolicitarHabilitacaoRepository solicitarHabilitacaoRepository;
     StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository;
 
+    Long ID_USUARIO;
+
+    public Long getID_USUARIO() {
+        if (User.getIdCurrentUser() != null) {
+            return User.getIdCurrentUser();
+        }
+        return ID_USUARIO;
+    }
+
+    public void setID_USUARIO(Long ID_USUARIO) {
+        this.ID_USUARIO = ID_USUARIO;
+    }
+
     public TRService(ApiDocumentosRest apiDocumentosRest, SolicitarHabilitacaoRepository solicitarHabilitacaoRepository,
         StatusRepository statusRepository, StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository,
         EmbarcacaoRepository embarcacaoRepository, EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository,
@@ -93,19 +106,27 @@ public class TRService {
     @Transactional
     public String solicitarHabilitacao(HabilitarTRDTO habilitarTRDTO) {
         try {
+            Long idUsuario = criarUsuarioConvidado(habilitarTRDTO);
+            this.setID_USUARIO(idUsuario);
+
             validarSolicitacaoHabilitacao();
 
             List<ArquivoAnexoSolicitacaoDTO> anexos = extrairAnexosDaSolicitacao(habilitarTRDTO);
 
-            criarUsuarioConvidado(habilitarTRDTO);
+            // TODO DESCOMENTAR QUANDO O GERAR TOKEN E SALVAR NOVO USUARIO NO KEYCLOAK ESTIVER OK
+            //ProcessoDTO solicitacao = apiDocumentosRest.criarSolicitacaoHabilitacaoTR();
+            ProcessoDTO solicitacao = new ProcessoDTO();
+            solicitacao.setCriadoEm(new Timestamp(System.currentTimeMillis()));
+            solicitacao.setUuid(UUID.randomUUID().toString());
 
-            ProcessoDTO solicitacao = apiDocumentosRest.criarSolicitacaoHabilitacaoTR();
             if (Objects.isNull(solicitacao)) {
                 throw new BadRequestException("Falha ao criar a solicitação - API DOCUMENTOS");
             }
 
-            DespachoDTO despachoDTO = apiDocumentosRest.salvarDespacho(buildDespacho(habilitarTRDTO),
-                UUID.fromString(solicitacao.getUuid()));
+            // TODO DESCOMENTAR QUANDO O GERAR TOKEN E SALVAR NOVO USUARIO NO KEYCLOAK ESTIVER OK
+            //DespachoDTO despachoDTO = apiDocumentosRest.salvarDespacho(buildDespacho(habilitarTRDTO),UUID.fromString(solicitacao.getUuid()));
+            DespachoDTO despachoDTO = buildDespacho(habilitarTRDTO);
+
             if (Objects.isNull(despachoDTO)) {
                 throw new BadRequestException("Falha ao criar despacho - API DOCUMENTOS");
             }
@@ -124,7 +145,7 @@ public class TRService {
             solicitarHabilitacao.setStatus(status.getDescricao());
 
             solicitarHabilitacao.setMetadado(convertJsonToString(solicitarHabilitacaoDTO));
-            solicitarHabilitacao.setIdUsuario(User.getIdCurrentUser());
+            solicitarHabilitacao.setIdUsuario(this.getID_USUARIO());
             solicitarHabilitacao.setUuidSolicitacao(UUID.fromString(solicitacao.getUuid()));
             solicitarHabilitacao.setDataSolicitacao(new Date(solicitacao.getCriadoEm().getTime()));
             // TODO REVER
@@ -150,7 +171,7 @@ public class TRService {
         }
     }
 
-    private void criarUsuarioConvidado(HabilitarTRDTO habilitarTRDTO) {
+    private Long criarUsuarioConvidado(HabilitarTRDTO habilitarTRDTO) {
         if (habilitarTRDTO != null && Strings.isNotEmpty(habilitarTRDTO.getCpf()) && Strings.isNotBlank(habilitarTRDTO.getCpf())) {
             Optional<Usuario> usuario = usuarioRepository.findUsuarioByCpf(habilitarTRDTO.getCpf());
             if (!usuario.isPresent()) {
@@ -169,9 +190,11 @@ public class TRService {
                 newUsuario.setEndereco(endereco);
                 newUsuario.setPermissoes(new ArrayList<>(List.of(permissaoRepository.findPermissaoByName("convidado"))));
 
-                usuarioService.salvar(newUsuario);
+                newUsuario = usuarioRepository.saveAndFlush(newUsuario);
+                return newUsuario.getId();
             }
         }
+        return null;
     }
 
     private void validarEmbarcacoes(HabilitarTRDTO habilitarTRDTO) {
@@ -194,7 +217,7 @@ public class TRService {
     }
 
     public List<SolicitacaoHabilitacaoDTO> minhasSolicitacoes() {
-        Long idUsuario = User.getIdCurrentUser();
+        Long idUsuario = this.getID_USUARIO();
         List<Object[]> results = solicitarHabilitacaoRepository.findAllSolicitacoesByIdUsuario(idUsuario);
         if (CollectionUtils.isEmpty(results)) return null;
         return results.stream().map(result ->
@@ -208,7 +231,7 @@ public class TRService {
     }
 
     public HabilitarTRDTO detalhesSolicitacao(String uuid) {
-        Long idUsuario = User.getIdCurrentUser();
+        Long idUsuario = this.getID_USUARIO();
         SolicitarHabilitacao solicitacao = solicitarHabilitacaoRepository.findSolicitacaoByIdUsuarioAndUid(idUsuario, UUID.fromString(uuid));
         if (solicitacao != null) {
             SolicitarHabilitacaoDTO solicitarHabilitacaoDTO = convertStringToJson(solicitacao.getMetadado());
@@ -260,7 +283,7 @@ public class TRService {
 
     private DespachoDTO buildDespacho(HabilitarTRDTO habilitarTRDTO) {
         DespachoDTO despachoDTO = new DespachoDTO();
-        despachoDTO.setUsuarioAcao(User.getIdCurrentUser().intValue());
+        despachoDTO.setUsuarioAcao(this.getID_USUARIO().intValue());
         despachoDTO.setCriadoEm(Timestamp.from(Instant.now()));
         despachoDTO.setCodigoDescricao("HABILITACAO_TR");
         despachoDTO.setKind("TRAMITACAO");
@@ -402,7 +425,7 @@ public class TRService {
     }
 
     public String findStatusUltimaSolicatacao() {
-        Long idUsuario = User.getIdCurrentUser();
+        Long idUsuario = this.getID_USUARIO();
         Optional<Object> status = solicitarHabilitacaoRepository.findStatusByLastSolicitacao(idUsuario);
         if (status.isPresent() && StringUtils.hasText(status.get().toString())) {
             return status.get().toString();

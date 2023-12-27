@@ -32,6 +32,9 @@ public class User {
 
     public static Long getIdCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth.getPrincipal() == "anonymousUser") {
+            return null;
+        }
         KeycloakPrincipal principal = (KeycloakPrincipal)auth.getPrincipal();
         KeycloakSecurityContext session = principal.getKeycloakSecurityContext();
         AccessToken accessToken = session.getToken();
