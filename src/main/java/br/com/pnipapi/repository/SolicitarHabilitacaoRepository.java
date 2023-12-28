@@ -6,13 +6,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface SolicitarHabilitacaoRepository extends JpaRepository<SolicitarHabilitacao, Long>  {
 
     @Query(nativeQuery = true, value = """ 
-        SELECT id, id_usuario, cast(uuid_solicitacao as text), data_solicitacao FROM public.solicitar_habilitacao WHERE id_usuario = :idUsuario ORDER BY id DESC
+        SELECT id, id_usuario, cast(uuid_solicitacao as text), status, data_solicitacao 
+        FROM public.solicitar_habilitacao 
+        WHERE id_usuario = :idUsuario 
+        ORDER BY id DESC
     """)
     List<Object[]> findAllSolicitacoesByIdUsuario(Long idUsuario);
 
@@ -20,5 +24,28 @@ public interface SolicitarHabilitacaoRepository extends JpaRepository<SolicitarH
         SELECT * FROM public.solicitar_habilitacao WHERE id_usuario = :idUsuario AND uuid_solicitacao = :uuid
     """)
     SolicitarHabilitacao findSolicitacaoByIdUsuarioAndUid(Long idUsuario, UUID uuid);
+
+    @Query(nativeQuery = true, value = """
+        select * from public.solicitar_habilitacao sh where sh.uuid_solicitacao = :uuid
+    """)
+    Optional<SolicitarHabilitacao> findByUuid(UUID uuid);
+
+    @Query(nativeQuery = true, value = """
+        select sh.* from public.solicitar_habilitacao sh 
+        where sh.status in (:status) order by sh.data_solicitacao desc
+    """)
+    List<SolicitarHabilitacao> findSolicitacoesByStatus(List<String> status);
+
+    @Query(nativeQuery = true, value = """
+        SELECT status FROM public.solicitar_habilitacao WHERE id_usuario = :idUsuario ORDER BY id DESC LIMIT 1;
+    """)
+    Optional<Object> findStatusByLastSolicitacao(Long idUsuario);
+
+    @Query(nativeQuery = true, value = """ 
+        SELECT sh FROM public.solicitar_habilitacao sh
+        JOIN public.embarcacao_solicitar_habilitacao esh on esh.id_solicitacao = sh.id 
+        WHERE esh.id_embarcacao = :idEmbarcacao and esh.aprovado = true 
+    """)
+    Optional<SolicitarHabilitacao> findSolicitacaoByIdEmbarcacao(Long idEmbarcacao);
 
 }

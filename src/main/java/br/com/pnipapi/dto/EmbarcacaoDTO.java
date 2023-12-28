@@ -1,31 +1,40 @@
 package br.com.pnipapi.dto;
 
-import lombok.Builder;
+import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Builder
-public record EmbarcacaoDTO (
-    Long id,
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class EmbarcacaoDTO {
+
+    private Long id;
     @NotNull @NotEmpty @Length(max = 100)
-    String nome,
+    private String nome;
     @NotNull @NotEmpty @Length(max = 70)
-    String numMarinhaTie,
+    private String numMarinhaTie;
     @NotNull @NotEmpty @Length(max = 70)
-    String numMarinha,
+    private String numMarinha;
     @NotNull @NotEmpty @Length(max = 70)
-    String numRgp,
+    private String numRgp;
     @NotNull @NotEmpty
-    String uf,
+    private String uf;
     @NotNull @NotEmpty
-    String pais,
-    Integer anoConstrucao,
-    Integer hp,
-    String comprimento,
+    private String pais;
+    private Integer anoConstrucao;
+    private Integer hp;
+    private String comprimento;
     @NotNull @NotEmpty
-    String petrecho,
+    private String petrecho;
     @NotNull @NotEmpty
-    String codigoIn) {
+    private String codigoIn;
+    private String frota;
+    private String declaracaoProprietario;
+    private String declaracaoProprietarioBase64;
+
 }
