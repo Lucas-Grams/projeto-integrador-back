@@ -52,7 +52,7 @@ public class TRController {
     }
 
     @GetMapping("/find/solicitacoes/by/status/{status}")
-    ResponseDTO<List<SolicitarHabilitacao>> findSolicitacoesByStatus(@PathVariable String status) {
+    ResponseDTO<List<SolicitarHabilitacao>> findSolicitacoesByStatus(@PathVariable List<String> status) {
         return ResponseDTO.ok(trService.findSolicitacoesByStatus(status));
     }
 

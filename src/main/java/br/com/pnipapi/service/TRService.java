@@ -99,7 +99,7 @@ public class TRService {
         return solicitarHabilitacaoRepository.findByUuid(uuid).get();
     }
 
-    public List<SolicitarHabilitacao> findSolicitacoesByStatus(String status) {
+    public List<SolicitarHabilitacao> findSolicitacoesByStatus(List<String> status) {
         return solicitarHabilitacaoRepository.findSolicitacoesByStatus(status);
     }
 
