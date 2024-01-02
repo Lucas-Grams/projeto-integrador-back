@@ -2,6 +2,7 @@ package br.com.pnipapi.controller;
 
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeFormDTO;
+import br.com.pnipapi.model.TipoUnidade;
 import br.com.pnipapi.model.Unidade;
 import br.com.pnipapi.service.UnidadeService;
 import org.springframework.stereotype.Controller;
@@ -43,4 +44,7 @@ public class UnidadeController {
     public ResponseDTO<Unidade> update(@RequestBody UnidadeFormDTO unidade){
         return unidadeService.update(unidade);
     }
+
+    @GetMapping("/findAllTipos")
+    public ResponseDTO<List<TipoUnidade>> findAllTipos(){return this.unidadeService.findAllTipos();}
 }

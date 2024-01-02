@@ -3,9 +3,11 @@ package br.com.pnipapi.service;
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeFormDTO;
 import br.com.pnipapi.dto.UsuarioInfo;
+import br.com.pnipapi.model.TipoUnidade;
 import br.com.pnipapi.model.Unidade;
 import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.repository.EnderecoRepository;
+import br.com.pnipapi.repository.TipoUnidadeRepository;
 import br.com.pnipapi.repository.UnidadeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +22,12 @@ public class UnidadeService {
     UnidadeRepository unidadeRepository;
     EnderecoRepository enderecoRepository;
     UsuarioService usuarioService;
-    public UnidadeService(UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository, UsuarioService usuarioService) {
+    TipoUnidadeRepository tipoUnidadeRepository;
+    public UnidadeService(UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository, UsuarioService usuarioService, TipoUnidadeRepository tipoUnidadeRepository) {
         this.unidadeRepository = unidadeRepository;
         this.enderecoRepository = enderecoRepository;
         this.usuarioService = usuarioService;
+        this.tipoUnidadeRepository = tipoUnidadeRepository;
     }
 
     public ResponseDTO<Unidade> save(UnidadeFormDTO unidade){
@@ -97,5 +101,9 @@ public class UnidadeService {
         unidadeSalva = unidadeRepository.save(unidadeSalva);
 
         return ResponseDTO.ok( "Unidade atualizada com sucesso!", unidadeSalva);
+    }
+
+    public ResponseDTO<List<TipoUnidade>> findAllTipos(){
+        return ResponseDTO.ok(this.tipoUnidadeRepository.findAll());
     }
 }
