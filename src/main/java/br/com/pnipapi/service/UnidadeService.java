@@ -56,7 +56,7 @@ public class UnidadeService {
     }
 
     public List<Unidade> findAll(){
-        return unidadeRepository.findAllByAtivo(true).parallelStream().filter(Objects::nonNull).toList();
+        return unidadeRepository.findAll().parallelStream().filter(Objects::nonNull).toList();
     }
 
     public List<Unidade> getGerenciadoras(String tipo){
@@ -68,9 +68,9 @@ public class UnidadeService {
         Unidade unidade = this.unidadeRepository.findByUuid(uuid);
         unidade.setUsuarios(this.usuarioService.findRepresentantes(unidade.getId()));
         if(!unidade.getUsuarios().isEmpty()) {
-            unidadeRepository.updateRepresentante(unidade.getId());
+            unidadeRepository.updateRepresentante(unidade.getId(), unidade.isAtivo() ? false : true);
         }
-        unidade.setAtivo(false);
+        unidade.setAtivo(unidade.isAtivo() ? false : true);
         unidadeRepository.save(unidade);
     }
 

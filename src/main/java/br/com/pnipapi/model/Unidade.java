@@ -40,7 +40,7 @@ public class Unidade {
     private Unidade unidadeGerenciadora;
 
     @Column(nullable = false)
-    private boolean ativo = true;
+    private boolean ativo;
 
     @Column(nullable = false)
     private UUID uuid = UUID.randomUUID();
