@@ -67,6 +67,7 @@ public class Unidade {
         if(uni.id() != null){
             unidadeNova.setId(uni.id());
         }
+        unidadeNova.setAtivo(true);
         unidadeNova.setNome(uni.nome());
         unidadeNova.setTipo(uni.tipo());
         unidadeNova.setDataCadastro(Date.valueOf(LocalDate.now()));

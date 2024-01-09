@@ -32,7 +32,7 @@ public class UnidadeService {
 
     public ResponseDTO<Unidade> save(UnidadeFormDTO unidade){
         Unidade unidadeSalva = new Unidade();
-        Usuario usuario = new Usuario();
+        List<Usuario> usuarios = new ArrayList<>();
         unidadeSalva = unidadeSalva.toUnidade(unidade);
         if(unidade.idUnidadeGerenciadora() > 0){
             unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
@@ -40,17 +40,21 @@ public class UnidadeService {
         if (unidadeSalva.getEndereco() != null) {
             enderecoRepository.save(unidadeSalva.getEndereco());
         }
-        usuario = usuarioService.save(unidade.usuarioRepresentante());
+        unidade.usuarios().forEach((user)->{
+            usuarios.add(usuarioService.save(user));
+        });
 
         if (Objects.nonNull(unidadeSalva.getUsuarios())) {
-            unidadeSalva.getUsuarios().add(usuario);
+            unidadeSalva.setUsuarios(usuarios);
         } else {
             unidadeSalva.setUsuarios(new ArrayList<>());
-            unidadeSalva.getUsuarios().add(usuario);
+            unidadeSalva.setUsuarios(usuarios);
         }
         System.out.println(unidadeSalva.getUsuarios().size());
         unidadeSalva = unidadeRepository.save(unidadeSalva);
-        unidadeRepository.salvarRepresentante(Math.toIntExact(unidadeSalva.getId()), Math.toIntExact(usuario.getId()));
+        Unidade finalUnidadeSalva = unidadeSalva;
+        unidadeSalva.getUsuarios().forEach((user)->{unidadeRepository.salvarRepresentante(Math.toIntExact(finalUnidadeSalva.getId()), Math.toIntExact(user.getId()));});
+
 
         return ResponseDTO.ok( "Unidade cadastrada com sucesso!", unidadeSalva);
     }
@@ -80,7 +84,7 @@ public class UnidadeService {
 
     public ResponseDTO<Unidade> update(UnidadeFormDTO unidade){
         Unidade unidadeSalva = new Unidade();
-        Usuario usuario = new Usuario();
+        List<Usuario> usuarios = new ArrayList<>();
         unidadeSalva = unidadeSalva.toUnidade(unidade);
         if(unidade.idUnidadeGerenciadora()!= null && unidade.idUnidadeGerenciadora() > 0){
             unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
@@ -89,13 +93,15 @@ public class UnidadeService {
             enderecoRepository.save(unidadeSalva.getEndereco());
         }
 
-        usuario = usuarioService.save(unidade.usuarioRepresentante());
+        unidade.usuarios().forEach((user)->{
+            usuarios.add(usuarioService.save(user));
+        });
 
         if (Objects.nonNull(unidadeSalva.getUsuarios())) {
-            unidadeSalva.getUsuarios().add(usuario);
+            unidadeSalva.setUsuarios(usuarios);
         } else {
             unidadeSalva.setUsuarios(new ArrayList<>());
-            unidadeSalva.getUsuarios().add(usuario);
+            unidadeSalva.setUsuarios(usuarios);
         }
 
         unidadeSalva = unidadeRepository.save(unidadeSalva);
