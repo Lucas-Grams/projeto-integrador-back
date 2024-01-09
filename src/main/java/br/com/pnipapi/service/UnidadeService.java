@@ -12,6 +12,8 @@ import br.com.pnipapi.repository.UnidadeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,6 +43,7 @@ public class UnidadeService {
             enderecoRepository.save(unidadeSalva.getEndereco());
         }
         unidade.usuarios().forEach((user)->{
+            user.setDataCadastro(Date.valueOf(LocalDate.now()));
             usuarios.add(usuarioService.save(user));
         });
 

@@ -37,6 +37,7 @@ public class UsuarioService {
     }
 
     public Usuario save(Usuario usuario){
+
         if (usuario.getSenha() != null && Strings.isNotBlank(usuario.getSenha()) && Strings.isNotEmpty(usuario.getSenha())) {
             final String senha = new BCryptPasswordEncoder().encode(usuario.getSenha());
             usuario.setSenha(senha);
