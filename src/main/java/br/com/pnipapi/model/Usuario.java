@@ -9,6 +9,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.sql.Date;
 import java.util.UUID;
+import java.util.List;
 
 @Data
 @Table(name = "usuario", schema = "public")
@@ -59,4 +60,7 @@ public class Usuario {
 
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;
+
+//    @ManyToMany(mappedBy = "usuarios")
+//    private List<Unidade> unidadesAssociadas;
 }

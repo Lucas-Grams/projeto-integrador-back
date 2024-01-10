@@ -1,6 +1,7 @@
 package br.com.pnipapi.model;
 
 import br.com.pnipapi.dto.UnidadeFormDTO;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Unidade {
 
     @Id
@@ -51,7 +53,7 @@ public class Unidade {
     @Column
     private Date ultima_atualizacao;
 
-    @OneToMany
+    @ManyToMany
     @JoinTable(
         name="unidade_usuario",
         joinColumns = @JoinColumn(name = "id_unidade"),

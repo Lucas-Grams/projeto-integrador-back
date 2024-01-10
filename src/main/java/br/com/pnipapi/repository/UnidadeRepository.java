@@ -27,8 +27,7 @@ public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
     Unidade findByUuid(@Param("uuid") String uuid);
     @Transactional
     @Modifying
-    @Query(value = "INSERT INTO unidade_usuario (id_unidade, id_usuario, ativo) " +
-        "VALUES (:id_unidade, :id_usuario, true)", nativeQuery = true)
+    @Query(value = "UPDATE unidade_usuario SET ativo = true WHERE id_unidade =:id_unidade AND id_usuario=:id_usuario", nativeQuery = true)
     void salvarRepresentante(@Param("id_unidade") int id_unidade, @Param("id_usuario") int id_usuario);
 
     @Query(value="SELECT u.* FROM usuario u " +
