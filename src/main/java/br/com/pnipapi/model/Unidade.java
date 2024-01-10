@@ -82,6 +82,8 @@ public class Unidade {
         endereco.setComplemento(uni.complemento());
         endereco.setNumero(uni.numero());
         endereco.setCep(uni.cep());
+        endereco.setLatitude(uni.latitude());
+        endereco.setLongitude(uni.longitude());
         unidadeNova.setEndereco(endereco);
 
         return unidadeNova;

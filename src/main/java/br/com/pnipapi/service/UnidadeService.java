@@ -33,6 +33,7 @@ public class UnidadeService {
     }
 
     public ResponseDTO<Unidade> save(UnidadeFormDTO unidade){
+        System.out.println(unidade.toString());
         Unidade unidadeSalva = new Unidade();
         List<Usuario> usuarios = new ArrayList<>();
         unidadeSalva = unidadeSalva.toUnidade(unidade);
