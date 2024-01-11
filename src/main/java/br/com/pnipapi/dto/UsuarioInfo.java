@@ -1,8 +1,10 @@
 package br.com.pnipapi.dto;
 
+import br.com.pnipapi.model.Usuario;
 import lombok.Builder;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Builder

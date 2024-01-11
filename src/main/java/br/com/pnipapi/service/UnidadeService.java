@@ -45,6 +45,7 @@ public class UnidadeService {
         }
         unidade.usuarios().forEach((user)->{
             user.setDataCadastro(Date.valueOf(LocalDate.now()));
+
             usuarios.add(usuarioService.save(user));
         });
 

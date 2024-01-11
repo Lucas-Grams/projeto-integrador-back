@@ -150,6 +150,14 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
 		</dependency>
+
+        <!-- Dependencia utilizada para mapear Array do PSQL para Java List em entities do hibernate -->
+        <dependency>
+            <groupId>io.hypersistence</groupId>
+            <artifactId>hypersistence-utils-hibernate-55</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
