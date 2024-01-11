@@ -1,6 +1,7 @@
 package br.com.pnipapi.model;
 
 import lombok.Data;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
@@ -10,6 +11,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Date;
 import java.util.UUID;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Table(name = "usuario", schema = "public")
@@ -61,6 +63,20 @@ public class Usuario {
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;
 
-//    @ManyToMany(mappedBy = "usuarios")
-//    private List<Unidade> unidadesAssociadas;
+
+    @ElementCollection()
+    @CollectionTable(name = "unidade_usuario", joinColumns = @JoinColumn(name = "id_usuario"))
+    @Column(name = "permissao", columnDefinition = "_text[]")
+    private List<String> permissao;
+
+    public enum Permissao{
+        admin,
+        tr,
+        mpa,
+        so,
+        representante
+
+    }
 }
+
+
