@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.*;
 import java.sql.Date;
@@ -51,15 +50,14 @@ public class Unidade {
     private Date dataCadastro = new Date(System.currentTimeMillis());
 
     @Column
-    private Date ultima_atualizacao;
+    private Date ultimaAtualizacao;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name="unidade_usuario",
         joinColumns = @JoinColumn(name = "id_unidade"),
         inverseJoinColumns = @JoinColumn(name = "id_usuario")
     )
-    @Cascade(CascadeType.ALL)
     private List<Usuario> usuarios;
 
 

@@ -5,10 +5,12 @@ import br.com.pnipapi.dto.UnidadeFormDTO;
 import br.com.pnipapi.dto.UsuarioInfo;
 import br.com.pnipapi.model.TipoUnidade;
 import br.com.pnipapi.model.Unidade;
+import br.com.pnipapi.model.UnidadeUsuario;
 import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.repository.EnderecoRepository;
 import br.com.pnipapi.repository.TipoUnidadeRepository;
 import br.com.pnipapi.repository.UnidadeRepository;
+import br.com.pnipapi.repository.UnidadeUsuarioRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +27,22 @@ public class UnidadeService {
     EnderecoRepository enderecoRepository;
     UsuarioService usuarioService;
     TipoUnidadeRepository tipoUnidadeRepository;
-    public UnidadeService(UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository, UsuarioService usuarioService, TipoUnidadeRepository tipoUnidadeRepository) {
+    UnidadeUsuarioRepository unidadeUsuarioRepository;
+    public UnidadeService(UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository,
+                          UsuarioService usuarioService, TipoUnidadeRepository tipoUnidadeRepository,
+                          UnidadeUsuarioRepository unidadeUsuarioRepository) {
         this.unidadeRepository = unidadeRepository;
         this.enderecoRepository = enderecoRepository;
         this.usuarioService = usuarioService;
         this.tipoUnidadeRepository = tipoUnidadeRepository;
+        this.unidadeUsuarioRepository = unidadeUsuarioRepository;
     }
 
     public ResponseDTO<Unidade> save(UnidadeFormDTO unidade){
         System.out.println(unidade.toString());
+        UnidadeUsuario unidadeUsuario = new UnidadeUsuario();
         Unidade unidadeSalva = new Unidade();
+        List<Unidade> unidades = new ArrayList<>();
         List<Usuario> usuarios = new ArrayList<>();
         unidadeSalva = unidadeSalva.toUnidade(unidade);
         if(unidade.idUnidadeGerenciadora() > 0){
@@ -43,11 +51,12 @@ public class UnidadeService {
         if (unidadeSalva.getEndereco() != null) {
             enderecoRepository.save(unidadeSalva.getEndereco());
         }
+        unidades.add(unidadeSalva);
+        unidadeUsuario.setUnidades(unidades);
         unidade.usuarios().forEach((user)->{
             user.setDataCadastro(Date.valueOf(LocalDate.now()));
-
-            usuarios.add(usuarioService.save(user));
         });
+        unidadeUsuario.setUsuarios(unidadeSalva.getUsuarios());
 
         if (Objects.nonNull(unidadeSalva.getUsuarios())) {
             unidadeSalva.setUsuarios(usuarios);
@@ -55,8 +64,7 @@ public class UnidadeService {
             unidadeSalva.setUsuarios(new ArrayList<>());
             unidadeSalva.setUsuarios(usuarios);
         }
-        System.out.println(unidadeSalva.getUsuarios().size());
-        unidadeSalva = unidadeRepository.save(unidadeSalva);
+        unidadeUsuarioRepository.save(unidadeUsuario);
         Unidade finalUnidadeSalva = unidadeSalva;
         unidadeSalva.getUsuarios().forEach((user)->{unidadeRepository.salvarRepresentante(Math.toIntExact(finalUnidadeSalva.getId()), Math.toIntExact(user.getId()));});
         return ResponseDTO.ok( "Unidade cadastrada com sucesso!", unidadeSalva);
