@@ -1,6 +1,8 @@
 package br.com.pnipapi.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -8,24 +10,18 @@ import java.util.Set;
 @Data
 @Table(name = "permissao", schema = "public")
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class Permissao {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
     @Column(name="descricao")
-    private Permissoes descricao;
+    private String descricao;
 
-    @ManyToMany(mappedBy = "permissoes")
-    private Set<UnidadeUsuario> unidadesUsuarios;
-
-    public enum Permissoes{
-        admin,
-        tr,
-        mpa,
-        so,
-        representante
+    public Permissao(String descricao) {
+        this.descricao = descricao.toLowerCase();
     }
 }

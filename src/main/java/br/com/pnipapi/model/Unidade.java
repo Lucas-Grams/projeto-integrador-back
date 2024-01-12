@@ -5,11 +5,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
 import org.hibernate.annotations.Cascade;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import javax.persistence.*;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +37,7 @@ public class Unidade {
     @Column(nullable = false)
     private String tipo;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(nullable = false, name = "id_endereco")
     private Endereco endereco;
 
@@ -52,6 +57,7 @@ public class Unidade {
     @Column
     private Date ultimaAtualizacao;
 
+    @Transient
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name="unidade_usuario",
@@ -84,6 +90,23 @@ public class Unidade {
         endereco.setLongitude(uni.longitude());
         unidadeNova.setEndereco(endereco);
 
+        List<Usuario> usuarios = new ArrayList<>();
+        uni.usuarios().forEach((user)->{
+            if (user.getSenha() != null && Strings.isNotBlank(user.getSenha()) && Strings.isNotEmpty(user.getSenha())) {
+                final String senha = new BCryptPasswordEncoder().encode(user.getSenha());
+                user.setSenha(senha);
+            }else{
+                final String senha = new BCryptPasswordEncoder().encode("teste001");
+                user.setSenha(senha);
+            }
+            if(user.getDataCadastro() == null){
+                user.setDataCadastro(Date.valueOf(LocalDate.now()));
+            }
+            System.out.println(user.toString());
+            usuarios.add(user);
+        });
+
+        unidadeNova.setUsuarios(usuarios);
         return unidadeNova;
     }
 

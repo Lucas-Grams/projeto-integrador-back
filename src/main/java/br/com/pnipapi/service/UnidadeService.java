@@ -2,24 +2,14 @@ package br.com.pnipapi.service;
 
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeFormDTO;
-import br.com.pnipapi.dto.UsuarioInfo;
-import br.com.pnipapi.model.TipoUnidade;
-import br.com.pnipapi.model.Unidade;
-import br.com.pnipapi.model.UnidadeUsuario;
-import br.com.pnipapi.model.Usuario;
-import br.com.pnipapi.repository.EnderecoRepository;
-import br.com.pnipapi.repository.TipoUnidadeRepository;
-import br.com.pnipapi.repository.UnidadeRepository;
-import br.com.pnipapi.repository.UnidadeUsuarioRepository;
+import br.com.pnipapi.model.*;
+import br.com.pnipapi.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Date;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 @Service
 public class UnidadeService {
@@ -28,45 +18,44 @@ public class UnidadeService {
     UsuarioService usuarioService;
     TipoUnidadeRepository tipoUnidadeRepository;
     UnidadeUsuarioRepository unidadeUsuarioRepository;
+    PermissaoRepository permissaoRepository;
     public UnidadeService(UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository,
                           UsuarioService usuarioService, TipoUnidadeRepository tipoUnidadeRepository,
-                          UnidadeUsuarioRepository unidadeUsuarioRepository) {
+                          UnidadeUsuarioRepository unidadeUsuarioRepository,  PermissaoRepository permissaoRepository) {
         this.unidadeRepository = unidadeRepository;
         this.enderecoRepository = enderecoRepository;
         this.usuarioService = usuarioService;
         this.tipoUnidadeRepository = tipoUnidadeRepository;
         this.unidadeUsuarioRepository = unidadeUsuarioRepository;
+        this.permissaoRepository = permissaoRepository;
     }
 
     public ResponseDTO<Unidade> save(UnidadeFormDTO unidade){
         System.out.println(unidade.toString());
-        UnidadeUsuario unidadeUsuario = new UnidadeUsuario();
         Unidade unidadeSalva = new Unidade();
-        List<Unidade> unidades = new ArrayList<>();
-        List<Usuario> usuarios = new ArrayList<>();
         unidadeSalva = unidadeSalva.toUnidade(unidade);
+
         if(unidade.idUnidadeGerenciadora() > 0){
             unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
         }
-        if (unidadeSalva.getEndereco() != null) {
-            enderecoRepository.save(unidadeSalva.getEndereco());
-        }
-        unidades.add(unidadeSalva);
-        unidadeUsuario.setUnidades(unidades);
-        unidade.usuarios().forEach((user)->{
-            user.setDataCadastro(Date.valueOf(LocalDate.now()));
-        });
-        unidadeUsuario.setUsuarios(unidadeSalva.getUsuarios());
 
-        if (Objects.nonNull(unidadeSalva.getUsuarios())) {
-            unidadeSalva.setUsuarios(usuarios);
-        } else {
-            unidadeSalva.setUsuarios(new ArrayList<>());
-            unidadeSalva.setUsuarios(usuarios);
+        List<UnidadeUsuario> unidadeUsuarios = new ArrayList<>();
+        List<Usuario> usuarios = new ArrayList<>(unidadeSalva.getUsuarios());
+        unidadeSalva.setUsuarios(null);
+
+        for (Usuario usuario : usuarios) {
+            List<Permissao> permissoes = permissaoRepository.findAllByDescricaoIn(
+                usuario.getPermissoes().stream().map(permissao -> permissao.getDescricao()).toList());
+
+            for (Permissao permissao : permissoes) {
+                UnidadeUsuario uu = new UnidadeUsuario(
+                    unidadeSalva, usuario, permissao
+                );
+                unidadeUsuarios.add(uu);
+            }
         }
-        unidadeUsuarioRepository.save(unidadeUsuario);
-        Unidade finalUnidadeSalva = unidadeSalva;
-        unidadeSalva.getUsuarios().forEach((user)->{unidadeRepository.salvarRepresentante(Math.toIntExact(finalUnidadeSalva.getId()), Math.toIntExact(user.getId()));});
+
+        unidadeUsuarioRepository.saveAll(unidadeUsuarios);
         return ResponseDTO.ok( "Unidade cadastrada com sucesso!", unidadeSalva);
     }
 

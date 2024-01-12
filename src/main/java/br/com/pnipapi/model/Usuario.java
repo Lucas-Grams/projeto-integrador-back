@@ -3,7 +3,10 @@ package br.com.pnipapi.model;
 import lombok.Data;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.hibernate.validator.constraints.Length;
 import io.hypersistence.utils.hibernate.type.array.ListArrayType;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -16,7 +19,6 @@ import java.util.UUID;
 @Data
 @Table(name = "usuario", schema = "public")
 @Entity
-@TypeDef(name = "list-array", typeClass = ListArrayType.class)
 public class Usuario {
 
     @Id
@@ -61,6 +63,7 @@ public class Usuario {
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;
 
+    @Transient
     @ManyToMany
     @JoinTable(
         name = "unidade_usuario",
