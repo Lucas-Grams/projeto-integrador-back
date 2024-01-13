@@ -1,12 +1,16 @@
 package br.com.pnipapi.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Data
 @Table(name = "endereco", schema = "public")
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class Endereco {
 
     @Id
@@ -41,4 +45,12 @@ public class Endereco {
     @Column
     private String longitude;
 
+    public Endereco(String rua, String cep, String numero, String complemento, String cidade, String uf) {
+        this.rua = rua;
+        this.cep = cep;
+        this.numero = numero;
+        this.complemento = complemento;
+        this.cidade = cidade;
+        this.uf = uf;
+    }
 }

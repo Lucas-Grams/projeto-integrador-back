@@ -4,8 +4,9 @@ import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UsuarioInfo;
 import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.repository.UsuarioRepository;
+import br.com.pnipapi.utils.User;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -25,7 +26,7 @@ public class UsuarioService {
 
     public ResponseDTO<UsuarioInfo> salvar(Usuario usuario) {
         if (usuario.getSenha() != null && Strings.isNotBlank(usuario.getSenha()) && Strings.isNotEmpty(usuario.getSenha())) {
-            final String senha = new BCryptPasswordEncoder().encode(usuario.getSenha());
+            final String senha = User.generatePasswordBCrypt(usuario.getSenha());
             usuario.setSenha(senha);
         }
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
@@ -42,10 +43,10 @@ public class UsuarioService {
     public Usuario save(Usuario usuario){
 
         if (usuario.getSenha() != null && Strings.isNotBlank(usuario.getSenha()) && Strings.isNotEmpty(usuario.getSenha())) {
-            final String senha = new BCryptPasswordEncoder().encode(usuario.getSenha());
+            final String senha = User.generatePasswordBCrypt(usuario.getSenha());
             usuario.setSenha(senha);
         }else{
-            final String senha = new BCryptPasswordEncoder().encode("teste001");
+            final String senha = User.generatePasswordBCrypt("teste001");
             usuario.setSenha(senha);
         }
         Usuario usuarioSalvo = usuarioRepository.save(usuario);

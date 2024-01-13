@@ -65,16 +65,4 @@ public class Usuario {
 
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;
-
-    @Transient
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}  )
-    @JoinTable(
-        name = "unidade_usuario",
-        joinColumns = @JoinColumn(name = "id_permissao"),
-        inverseJoinColumns = @JoinColumn(name = "id_usuario")
-    )
-    private List<Permissao> permissoes;
-
-    public Usuario(Long id, String cpf, String email, String nome, Date dataCadastro, Date ultimoAcesso, UUID uuid, boolean ativo, List<Permissao> permissoes) {
-    }
 }

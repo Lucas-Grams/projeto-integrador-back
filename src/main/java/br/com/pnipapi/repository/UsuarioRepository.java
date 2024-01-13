@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
@@ -24,6 +25,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
         " JOIN public.permissao p on uus.id_permissao = p.id " +
         " WHERE un.id = :id_unidade", nativeQuery = true)
     List<Usuario> findRepresentantes(@Param("id_unidade") long id_unidade);
-
 
 }

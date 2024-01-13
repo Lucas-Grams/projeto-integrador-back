@@ -25,6 +25,14 @@ public class SolicitarHabilitacao {
     private Long idUsuario;
 
     @Basic
+    @Column(name = "solicitante")
+    private String solicitante;
+
+    @Basic
+    @Column(name = "status")
+    private String status;
+
+    @Basic
     @Column(name = "uuid_solicitacao", nullable = true)
     private UUID uuidSolicitacao;
 
@@ -36,5 +44,13 @@ public class SolicitarHabilitacao {
     @Type(type = "jsonb")
     @Column(name = "metadado", columnDefinition = "jsonb")
     private String metadado;
+
+    @Basic
+    @Column(name = "protocolo")
+    private String protocolo;
+
+    @Basic
+    @Column(name = "observacao")
+    private String observacao;
 
 }
