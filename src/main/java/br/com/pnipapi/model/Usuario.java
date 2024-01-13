@@ -1,12 +1,13 @@
 package br.com.pnipapi.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.validator.constraints.Length;
 import io.hypersistence.utils.hibernate.type.array.ListArrayType;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -19,6 +20,8 @@ import java.util.UUID;
 @Data
 @Table(name = "usuario", schema = "public")
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class Usuario {
 
     @Id
@@ -64,11 +67,14 @@ public class Usuario {
     private boolean ativo = true;
 
     @Transient
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}  )
     @JoinTable(
         name = "unidade_usuario",
-        joinColumns = @JoinColumn(name = "id_usuario"),
-        inverseJoinColumns = @JoinColumn(name = "id_permissao")
+        joinColumns = @JoinColumn(name = "id_permissao"),
+        inverseJoinColumns = @JoinColumn(name = "id_usuario")
     )
     private List<Permissao> permissoes;
+
+    public Usuario(Long id, String cpf, String email, String nome, Date dataCadastro, Date ultimoAcesso, UUID uuid, boolean ativo, List<Permissao> permissoes) {
+    }
 }

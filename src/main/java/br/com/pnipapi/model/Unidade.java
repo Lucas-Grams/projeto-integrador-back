@@ -57,16 +57,13 @@ public class Unidade {
     @Column
     private Date ultimaAtualizacao;
 
-    @Transient
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}  )
     @JoinTable(
         name="unidade_usuario",
         joinColumns = @JoinColumn(name = "id_unidade"),
         inverseJoinColumns = @JoinColumn(name = "id_usuario")
     )
     private List<Usuario> usuarios;
-
-
 
     public Unidade toUnidade(UnidadeFormDTO uni){
         Unidade unidadeNova = new Unidade();
@@ -102,7 +99,6 @@ public class Unidade {
             if(user.getDataCadastro() == null){
                 user.setDataCadastro(Date.valueOf(LocalDate.now()));
             }
-            System.out.println(user.toString());
             usuarios.add(user);
         });
 

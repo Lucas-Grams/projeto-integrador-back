@@ -4,6 +4,7 @@ import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeFormDTO;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,34 +31,46 @@ public class UnidadeService {
         this.permissaoRepository = permissaoRepository;
     }
 
-    public ResponseDTO<Unidade> save(UnidadeFormDTO unidade){
-        System.out.println(unidade.toString());
-        Unidade unidadeSalva = new Unidade();
-        unidadeSalva = unidadeSalva.toUnidade(unidade);
+    @Transactional
+    public ResponseDTO<Unidade> save(UnidadeFormDTO unidade) {
+        try {
+            Unidade unidadeSalva = new Unidade();
+            unidadeSalva = unidadeSalva.toUnidade(unidade);
 
-        if(unidade.idUnidadeGerenciadora() > 0){
-            unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
-        }
-
-        List<UnidadeUsuario> unidadeUsuarios = new ArrayList<>();
-        List<Usuario> usuarios = new ArrayList<>(unidadeSalva.getUsuarios());
-        unidadeSalva.setUsuarios(null);
-
-        for (Usuario usuario : usuarios) {
-            List<Permissao> permissoes = permissaoRepository.findAllByDescricaoIn(
-                usuario.getPermissoes().stream().map(permissao -> permissao.getDescricao()).toList());
-
-            for (Permissao permissao : permissoes) {
-                UnidadeUsuario uu = new UnidadeUsuario(
-                    unidadeSalva, usuario, permissao
-                );
-                unidadeUsuarios.add(uu);
+            if (unidade.idUnidadeGerenciadora() > 0) {
+                unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
             }
-        }
 
-        unidadeUsuarioRepository.saveAll(unidadeUsuarios);
-        return ResponseDTO.ok( "Unidade cadastrada com sucesso!", unidadeSalva);
+            List<UnidadeUsuario> unidadeUsuarios = new ArrayList<>();
+
+            Unidade finalUnidadeSalva = unidadeSalva;
+            unidadeSalva.getUsuarios().forEach(usuario -> {
+                List<Permissao> permissoes = permissaoRepository.findAllByDescricaoIn(
+                    usuario.getPermissoes().stream().map(Permissao::getDescricao).toList());
+
+                usuario.setPermissoes(new ArrayList<>());
+
+                permissoes.forEach(permissao -> {
+                    System.out.println(permissao.toString());
+                    usuario.getPermissoes().add(permissao);
+
+                    UnidadeUsuario uu = new UnidadeUsuario(finalUnidadeSalva, usuario, permissao, true);
+                    unidadeUsuarios.add(uu);
+                });
+            });
+            unidadeUsuarioRepository.saveAll(unidadeUsuarios);
+
+            return ResponseDTO.ok("Unidade cadastrada com sucesso!", unidadeSalva);
+        } catch (DataIntegrityViolationException e) {
+            // Captura específica para violações de integridade
+            return ResponseDTO.err("Erro ao cadastrar unidade: Violação de integridade de dados.");
+        } catch (Exception e) {
+            // Captura de exceções gerais
+            System.out.println(e.getCause() + e.getMessage());
+            return ResponseDTO.err("Erro ao cadastrar unidade" + e.getCause() + e.getMessage());
+        }
     }
+
 
     public List<Unidade> findAll(){
         return unidadeRepository.findAll().parallelStream().filter(Objects::nonNull).toList();

@@ -8,8 +8,11 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toCollection;
 
 @Service
 public class UsuarioService {
@@ -60,22 +63,21 @@ public class UsuarioService {
                     usuario.getDataCadastro(),
                     usuario.getUltimoAcesso(),
                     usuario.getUuid(),
-                    usuario.isAtivo());
+                    usuario.isAtivo(),
+                    usuario.getPermissoes());
         }).filter(Objects::nonNull).toList();
     }
-    public List<UsuarioInfo> findRepresentantesUnidade(String uuid){
-        return usuarioRepository.findRepresentantesUnidade(uuid).parallelStream().map(usuario -> {
-            return new UsuarioInfo(
-                usuario.getId(),
-                usuario.getCpf(),
-                usuario.getEmail(),
-                usuario.getNome(),
-                usuario.getDataCadastro(),
-                usuario.getUltimoAcesso(),
-                usuario.getUuid(),
-                usuario.isAtivo());
-        }).filter(Objects::nonNull).toList();
+
+    public List<Usuario> findUsuariosUnidade(String uuid) {
+        List<Usuario> usuarios = usuarioRepository.findUsuariosUnidade(uuid);
+
+        Map<Long, Usuario> usuarioMap = usuarios.stream()
+            .collect(Collectors.toMap(Usuario::getId, Function.identity(), (existing, replacement) -> replacement));
+
+        List<Usuario> usuariosUnicos = usuarioMap.values().stream().collect(Collectors.toList());
+        return usuariosUnicos;
     }
+
 
     List<Usuario>findRepresentantes(long id_unidade){
         return this.usuarioRepository.findRepresentantes(id_unidade);

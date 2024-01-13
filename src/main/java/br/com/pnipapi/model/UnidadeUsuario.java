@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
+import javax.transaction.Transactional;
 import java.io.Serializable;
 import java.util.List;
 
@@ -16,24 +17,22 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UnidadeUsuario {
-    public UnidadeUsuario(Unidade unidade, Usuario usuario, Permissao permissao) {
-        System.out.println(permissao.toString());
-        System.out.println(usuario.toString());
-        System.out.println(unidade.toString());
+    public UnidadeUsuario(Unidade unidade, Usuario usuario, Permissao permissao, boolean ativo) {
         this.unidade = unidade;
         this.usuario = usuario;
         this.permissao = permissao;
+        this.ativo = ativo;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    @ManyToOne(cascade = {CascadeType.ALL})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "id_unidade")
     private Unidade unidade;
 
-    @ManyToOne(cascade = {CascadeType.ALL})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
@@ -42,6 +41,6 @@ public class UnidadeUsuario {
     private Permissao permissao;
 
     @Column(name = "ativo")
-    private boolean ativo = true;
+    private boolean ativo;
 
 }

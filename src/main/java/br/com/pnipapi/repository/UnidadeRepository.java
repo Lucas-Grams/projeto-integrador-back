@@ -30,11 +30,13 @@ public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
     @Query(value = "UPDATE unidade_usuario SET ativo = true WHERE id_unidade =:id_unidade AND id_usuario=:id_usuario", nativeQuery = true)
     void salvarRepresentante(@Param("id_unidade") int id_unidade, @Param("id_usuario") int id_usuario);
 
-    @Query(value="SELECT u.* FROM usuario u " +
-        "JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
-        "JOIN unidade un ON un.id = uus.id_unidade " +
-        "WHERE un.id = :id_unidade ", nativeQuery = true)
-    List<Usuario> findRepresentantes(@Param("id_unidade") long id_unidade);
+    @Query(value="SELECT u.*, p.* FROM usuario u " +
+        " JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
+        " JOIN unidade un ON un.id = uus.id_unidade " +
+        " JOIN public.permissao p on uus.id_permissao = p.id " +
+        " WHERE un.id = 34, nativeQuery = true)", nativeQuery = true)
+    List<Usuario> findUsuarios(@Param("id_unidade") long id_unidade);
+
     @Modifying
     @Query(value="UPDATE unidade_usuario SET ativo =:ativo  WHERE id_unidade =:id_unidade", nativeQuery = true)
     void updateRepresentante(long id_unidade, boolean  ativo);
