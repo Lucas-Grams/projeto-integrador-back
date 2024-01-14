@@ -44,21 +44,34 @@ public class UnidadeService {
             List<UnidadeUsuario> unidadeUsuarios = new ArrayList<>();
 
             Unidade finalUnidadeSalva = unidadeSalva;
+            Unidade finalUnidadeSalva1 = unidadeSalva;
             unidadeSalva.getUsuarios().forEach(usuario -> {
+                if(usuario.getId() != null){
+                    usuario = usuarioService.findById(usuario.getId()).get();
+                    Usuario finalUsuario1 = usuario;
+                    finalUnidadeSalva1.getUsuarios().forEach((user)->{
+                        if(finalUsuario1.getId() == user.getId()){
+                            finalUsuario1.setPermissoes(user.getPermissoes());
+                        }
+                    });
+                }
                 List<Permissao> permissoes = permissaoRepository.findAllByDescricaoIn(
                     usuario.getPermissoes().stream().map(Permissao::getDescricao).toList());
 
                 usuario.setPermissoes(new ArrayList<>());
 
+                Usuario finalUsuario = usuario;
                 permissoes.forEach(permissao -> {
                     System.out.println(permissao.toString());
-                    usuario.getPermissoes().add(permissao);
+                    finalUsuario.getPermissoes().add(permissao);
 
-                    UnidadeUsuario uu = new UnidadeUsuario(finalUnidadeSalva, usuario, permissao, true);
+                    UnidadeUsuario uu = new UnidadeUsuario(finalUnidadeSalva, finalUsuario, permissao, true);
                     unidadeUsuarios.add(uu);
                 });
             });
-            unidadeUsuarioRepository.saveAll(unidadeUsuarios);
+            unidadeUsuarios.forEach((uniUser) ->{
+                unidadeUsuarioRepository.saveAndFlush(uniUser);
+            });
 
             return ResponseDTO.ok("Unidade cadastrada com sucesso!", unidadeSalva);
         } catch (DataIntegrityViolationException e) {
@@ -96,37 +109,36 @@ public class UnidadeService {
     }
 
     public ResponseDTO<Unidade> update(UnidadeFormDTO unidade){
-        System.out.println(unidade.toString());
-        Unidade unidadeSalva = new Unidade();
-        List<Usuario> usuarios = new ArrayList<>();
-        unidadeSalva = unidadeSalva.toUnidade(unidade);
-        if(unidade.idUnidadeGerenciadora()!= null && unidade.idUnidadeGerenciadora() > 0){
-            unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
-        }
-        System.out.println(unidadeSalva.toString());
-        if (unidadeSalva.getEndereco() != null) {
-            enderecoRepository.save(unidadeSalva.getEndereco());
-        }
+        try {
+            Unidade unidadeSalva = new Unidade();
+            unidadeSalva = unidadeSalva.toUnidade(unidade);
 
-        unidade.usuarios().forEach((user)->{
-            usuarios.add(usuarioService.save(user));
+            if (unidade.idUnidadeGerenciadora() > 0) {
+                unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
+            }
+
+           this.unidadeRepository.save(unidadeSalva);
+            return ResponseDTO.ok("Unidade atualizada com sucesso!", unidadeSalva);
+        } catch (DataIntegrityViolationException e) {
+            // Captura específica para violações de integridade
+            return ResponseDTO.err("Erro ao atualizar unidade: Violação de integridade de dados.");
+        } catch (Exception e) {
+            // Captura de exceções gerais
+            System.out.println(e.getCause() + e.getMessage());
+            return ResponseDTO.err("Erro ao atualizada unidade" + e.getCause() + e.getMessage());
+        }
+    }
+
+    public void validaVinculo(List<UnidadeUsuario> unidadeUsuarios, Long unidadeId){
+        List<UnidadeUsuario> vinculosExistentes = new ArrayList<>();
+        vinculosExistentes = unidadeUsuarioRepository.findAllByUnidadeId(unidadeId);
+        vinculosExistentes.forEach((vinculos)->{
+
         });
-
-        if (Objects.nonNull(unidadeSalva.getUsuarios())) {
-            unidadeSalva.setUsuarios(usuarios);
-        } else {
-            unidadeSalva.setUsuarios(new ArrayList<>());
-            unidadeSalva.setUsuarios(usuarios);
-        }
-
-        unidadeSalva = unidadeRepository.save(unidadeSalva);
-        Unidade finalUnidadeSalva = unidadeSalva;
-        unidadeSalva.getUsuarios().forEach((user)->{unidadeRepository.salvarRepresentante(Math.toIntExact(finalUnidadeSalva.getId()), Math.toIntExact(user.getId()));});
-
-        return ResponseDTO.ok( "Unidade atualizada com sucesso!", unidadeSalva);
     }
 
     public ResponseDTO<List<TipoUnidade>> findAllTipos(){
         return ResponseDTO.ok(this.tipoUnidadeRepository.findAll());
     }
+
 }

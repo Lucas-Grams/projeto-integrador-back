@@ -31,4 +31,7 @@ public class UsuarioController {
 
     @GetMapping("/findUsuariosUnidade/{uuid}")
     public List<Usuario> findUsuariosUnidade(@PathVariable String uuid){return usuarioService.findUsuariosUnidade(uuid);}
+
+    @GetMapping("/findUsuariosDip")
+    public List<Usuario> findUsuariosDip(){return usuarioService.findUsuariosDip();}
 }

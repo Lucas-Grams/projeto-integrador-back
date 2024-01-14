@@ -57,6 +57,7 @@ public class Unidade {
     @Column
     private Date ultimaAtualizacao;
 
+    @Transient
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}  )
     @JoinTable(
         name="unidade_usuario",

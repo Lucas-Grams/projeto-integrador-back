@@ -34,12 +34,17 @@ public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
         " JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
         " JOIN unidade un ON un.id = uus.id_unidade " +
         " JOIN public.permissao p on uus.id_permissao = p.id " +
-        " WHERE un.id = 34, nativeQuery = true)", nativeQuery = true)
+        " WHERE un.id = :id_unidade, nativeQuery = true)", nativeQuery = true)
     List<Usuario> findUsuarios(@Param("id_unidade") long id_unidade);
 
     @Modifying
     @Query(value="UPDATE unidade_usuario SET ativo =:ativo  WHERE id_unidade =:id_unidade", nativeQuery = true)
     void updateRepresentante(long id_unidade, boolean  ativo);
+
+    @Query(value = """
+    SELECT uuid FROM unidade WHERE uuid = cast(:uuid as uuid)
+    """, nativeQuery = true)
+    Long findIdByUuid(@Param("uuid") String uuid);
 
     List<Unidade> findAllByAtivo(boolean ativo);
 }
