@@ -78,6 +78,11 @@ public class UsuarioService {
         }).filter(Objects::nonNull).toList();
     }
 
+    public Usuario findByUuid(String uuid){
+        UUID uuidObj = UUID.fromString(uuid);
+        return usuarioRepository.findByUuid(uuidObj).get();
+    }
+
     public List<Usuario> findUsuariosUnidade(String uuid) {
         List<Usuario> usuarios = usuarioRepository.findUsuariosUnidade(uuid);
 

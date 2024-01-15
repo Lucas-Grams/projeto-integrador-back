@@ -29,6 +29,9 @@ public class UsuarioController {
         return usuarioService.findAll();
     }
 
+    @GetMapping("/findByUuid/{uuid}")
+    public Usuario findByUuid(@PathVariable String uuid){return usuarioService.findByUuid(uuid);}
+
     @GetMapping("/findUsuariosUnidade/{uuid}")
     public List<Usuario> findUsuariosUnidade(@PathVariable String uuid){return usuarioService.findUsuariosUnidade(uuid);}
 

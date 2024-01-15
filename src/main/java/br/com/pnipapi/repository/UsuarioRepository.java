@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
@@ -32,6 +33,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     Optional<Usuario> findUsuarioByCpf(@Param("cpf") String cpf);
 
     Optional<Usuario> findById(@Param("id") Long id);
+
+    Optional<Usuario> findByUuid(@Param("uuid") UUID uuid);
 
 
     @Query(value = """
