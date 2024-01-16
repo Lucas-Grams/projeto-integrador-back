@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,7 +23,7 @@ public class UnidadeUsuarioDTO {
 
         private Usuario usuario;
 
-        private Permissao[] permissao;
+        private List<Permissao> permissao;
 
         private boolean ativo;
 

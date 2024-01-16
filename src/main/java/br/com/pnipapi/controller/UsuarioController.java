@@ -43,6 +43,15 @@ public class UsuarioController {
     @GetMapping("/findUsuariosDip")
     public List<Usuario> findUsuariosDip(){return usuarioService.findUsuariosDip();}
 
-    @GetMapping("findUnidadesByUsuarioUuid/{uuid}")
+    @GetMapping("/findUnidadesByUsuarioUuid/{uuid}")
     public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(@PathVariable String uuid){return unidadeUsuarioService.findUnidadesByUsuarioUuid(uuid);}
+
+    @PostMapping("/salvarUsuario")
+    public ResponseDTO save(@RequestBody List<UnidadeUsuarioDTO> unidadeUsuarios){
+        return usuarioService.saveUsuarioUnidade(unidadeUsuarios);
+    }
+
+
+
+
 }

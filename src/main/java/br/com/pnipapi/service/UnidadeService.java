@@ -62,7 +62,6 @@ public class UnidadeService {
 
                 Usuario finalUsuario = usuario;
                 permissoes.forEach(permissao -> {
-                    System.out.println(permissao.toString());
                     finalUsuario.getPermissoes().add(permissao);
 
                     UnidadeUsuario uu = new UnidadeUsuario(finalUnidadeSalva, finalUsuario, permissao, true);

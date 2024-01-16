@@ -1,6 +1,7 @@
 package br.com.pnipapi.service;
 
 import br.com.pnipapi.dto.ResponseDTO;
+import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.dto.UsuarioInfo;
 import br.com.pnipapi.model.Permissao;
 import br.com.pnipapi.model.Usuario;
@@ -10,12 +11,10 @@ import br.com.pnipapi.repository.UsuarioRepository;
 import br.com.pnipapi.utils.User;
 import org.apache.logging.log4j.util.Strings;
 
-import org.hibernate.collection.internal.PersistentBag;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
-import java.sql.Array;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -25,12 +24,14 @@ public class UsuarioService {
     UsuarioRepository usuarioRepository;
     UnidadeUsuarioRepository unidadeUsuarioRepository;
     UnidadeRepository unidadeRepository;
+    UnidadeUsuarioService unidadeUsuarioService;
 
     public UsuarioService(UsuarioRepository usuarioRepository, UnidadeUsuarioRepository unidadeUsuarioRepository,
-                          UnidadeRepository unidadeRepository) {
+                          UnidadeRepository unidadeRepository, UnidadeUsuarioService unidadeUsuarioService) {
         this.usuarioRepository = usuarioRepository;
         this.unidadeUsuarioRepository = unidadeUsuarioRepository;
         this.unidadeRepository = unidadeRepository;
+        this.unidadeUsuarioService = unidadeUsuarioService;
     }
 
     public ResponseDTO<UsuarioInfo> salvar(Usuario usuario) {
@@ -112,5 +113,24 @@ public class UsuarioService {
 
     public List<Usuario> findUsuariosDip(){
         return usuarioRepository.findUsuariosDip();
+    }
+
+    public ResponseDTO saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
+        AtomicBoolean temUnidade = new AtomicBoolean(true);
+        unidadeUsuarios.forEach((uni)->{
+            if(!(uni.getUnidade().getNome().length()>2)){
+                temUnidade.set(false);
+            }
+        });
+        if(!temUnidade.get()){
+            Usuario user = new Usuario();
+            UnidadeUsuarioDTO uniUser = new UnidadeUsuarioDTO();
+            uniUser = unidadeUsuarios.get(0);
+            user = uniUser.getUsuario();
+            user = this.save(user);
+            return ResponseDTO.ok("Usuario cadastrado com sucesso");
+        }else{
+            return this.unidadeUsuarioService.saveUnidadeUsuario(unidadeUsuarios);
+        }
     }
 }

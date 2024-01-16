@@ -32,4 +32,6 @@ public interface UnidadeUsuarioRepository extends JpaRepository<UnidadeUsuario, 
 //    List<UnidadeUsuario> findUsuariosUnidadePermissao(@Param("id") Long id);
 
 List<UnidadeUsuario> findAllByUsuario_Id(@Param("id") Long id);
+
+
 }
