@@ -2,9 +2,11 @@ package br.com.pnipapi.controller;
 
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeFormDTO;
+import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.TipoUnidade;
 import br.com.pnipapi.model.Unidade;
 import br.com.pnipapi.service.UnidadeService;
+import br.com.pnipapi.service.UnidadeUsuarioService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,12 +16,17 @@ import java.util.List;
 @RequestMapping("/unidade")
 public class UnidadeController {
     UnidadeService unidadeService;
+    UnidadeUsuarioService unidadeUsuarioService;
 
-    public UnidadeController(UnidadeService unidadeService){ this.unidadeService = unidadeService; }
+    public UnidadeController(UnidadeService unidadeService, UnidadeUsuarioService unidadeUsuarioService)
+    {
+        this.unidadeService = unidadeService;
+        this.unidadeUsuarioService = unidadeUsuarioService;
+    }
 
     @PostMapping("/salvar")
-    public ResponseDTO<Unidade> save(@RequestBody UnidadeFormDTO unidade){
-        return unidadeService.save(unidade);
+    public ResponseDTO save(@RequestBody List<UnidadeUsuarioDTO> unidadeUsuarios){
+        return unidadeService.saveUnidadeUsuario(unidadeUsuarios);
     }
 
     @GetMapping("/findAll")
@@ -47,4 +54,9 @@ public class UnidadeController {
 
     @GetMapping("/findAllTipos")
     public ResponseDTO<List<TipoUnidade>> findAllTipos(){return this.unidadeService.findAllTipos();}
+
+    @GetMapping("/findUsuariosByUnidadeUuid/{uuid}")
+    public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(@PathVariable String uuid){return unidadeUsuarioService.findUsuariosByUnidadeUuid(uuid);}
+
+
 }

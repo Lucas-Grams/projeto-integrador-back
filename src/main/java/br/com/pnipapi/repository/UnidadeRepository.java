@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
@@ -47,4 +49,6 @@ public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
     Long findIdByUuid(@Param("uuid") String uuid);
 
     List<Unidade> findAllByAtivo(boolean ativo);
+
+    Optional<Unidade> findAllByUuid(@Param("uuid") UUID uuid);
 }

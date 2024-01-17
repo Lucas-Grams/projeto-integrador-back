@@ -42,11 +42,45 @@ public class UnidadeUsuarioService{
             Usuario user = usuarioRepository.findAllByUuid(uuidObj).orElse(null);
 
             if (user == null) {
-                // Trate o caso em que o usuário não é encontrado
                 return new ArrayList<>();
             }
 
             List<UnidadeUsuario> vinculos = unidadeUsuarioRepository.findAllByUsuario_Id(user.getId());
+            List<UnidadeUsuarioDTO> vinculosRetorno = new ArrayList<>();
+
+            vinculos.forEach((vin) -> {
+                if (!vinculosRetorno.contains(vin)) {
+                    // Crie uma nova instância e adicione à lista de retorno
+                    UnidadeUsuarioDTO novaInstancia = new UnidadeUsuarioDTO();
+                    novaInstancia.setId(vin.getId());
+                    novaInstancia.setUnidade(vin.getUnidade());
+                    novaInstancia.setUsuario(vin.getUsuario());
+                    novaInstancia.setPermissao(List.of(new Permissao[]{vin.getPermissao()}));
+                    novaInstancia.setAtivo(vin.isAtivo());
+                    vinculosRetorno.add(novaInstancia);
+                } else {
+                    // Encontre a instância existente e adicione a permissão
+                    UnidadeUsuarioDTO instanciaExistente = vinculosRetorno.stream()
+                        .filter(existing -> existing.equals(vin))
+                        .findFirst()
+                        .orElse(null);
+
+                    if (instanciaExistente != null) {
+                        Arrays.stream(new List[]{instanciaExistente.getPermissao()}).toList().add((List) vin.getPermissao());
+                    }
+                }
+            });
+
+            return vinculosRetorno;
+        }
+
+        public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(String uuid){
+            UUID uuidObj = UUID.fromString(uuid);
+            Unidade unidade = unidadeRepository.findAllByUuid(uuidObj).orElse(null);
+            if (unidade == null) {
+                return new ArrayList<>();
+            }
+            List<UnidadeUsuario> vinculos = unidadeUsuarioRepository.findAllByUnidadeId(unidade.getId());
             List<UnidadeUsuarioDTO> vinculosRetorno = new ArrayList<>();
 
             vinculos.forEach((vin) -> {
@@ -102,6 +136,10 @@ public class UnidadeUsuarioService{
         unidadeUsuarioRepository.saveAllAndFlush(unidadeUsuarioSalvar);
         this.validaPermissoes(unidadeUsuarioSalvar);
         return ResponseDTO.ok("Usuário cadastrado com sucesso");
+    }
+
+    public ResponseDTO saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
+        Unidade undiade = new Unidade();
     }
 
     void validaPermissoes(List<UnidadeUsuario> unidadeUsuarios) {
