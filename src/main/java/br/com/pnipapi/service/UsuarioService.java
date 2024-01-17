@@ -60,7 +60,7 @@ public class UsuarioService {
             usuario.setSenha(senha);
         }
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
-        return usuarioSalvo;
+          return usuarioSalvo;
     }
 
 
@@ -81,7 +81,7 @@ public class UsuarioService {
 
     public Usuario findByUuid(String uuid){
         UUID uuidObj = UUID.fromString(uuid);
-        return usuarioRepository.findByUuid(uuidObj).get();
+        return usuarioRepository.findAllByUuid(uuidObj).get();
     }
 
     public List<Usuario> findUsuariosUnidade(String uuid) {

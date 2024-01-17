@@ -34,4 +34,11 @@ public interface UnidadeUsuarioRepository extends JpaRepository<UnidadeUsuario, 
 List<UnidadeUsuario> findAllByUsuario_Id(@Param("id") Long id);
 
 
+@Query(value= """
+    SELECT id FROM unidade_usuario WHERE id_usuario = :id_usuario AND id_permissao = :id_permissao AND id_unidade = :id_unidade
+    """, nativeQuery = true)
+    Long findIdByUsuarioIdPermissaoID(@Param("id_usuario")Long id_usuario, @Param("id_permissao") Long id_permissao, @Param("id_unidade") Long id_unidade);
+
+
+
 }

@@ -14,10 +14,9 @@ import br.com.pnipapi.utils.User;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import javax.transaction.Transactional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static br.com.pnipapi.dto.ResponseDTO.ok;
 
@@ -40,7 +39,7 @@ public class UnidadeUsuarioService{
 
         public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(String uuid) {
             UUID uuidObj = UUID.fromString(uuid);
-            Usuario user = usuarioRepository.findByUuid(uuidObj).orElse(null);
+            Usuario user = usuarioRepository.findAllByUuid(uuidObj).orElse(null);
 
             if (user == null) {
                 // Trate o caso em que o usuário não é encontrado
@@ -76,42 +75,91 @@ public class UnidadeUsuarioService{
             return vinculosRetorno;
         }
 
-    public ResponseDTO saveUnidadeUsuario(List<UnidadeUsuarioDTO> unidadeUsuarios){
-
-        List<UnidadeUsuario>  unidadeUsuarioSalvar = new ArrayList<>();
-
-        List<UnidadeUsuario> finalUnidadeUsuarioSalvar = unidadeUsuarioSalvar;
-        unidadeUsuarios.forEach((uni)->{
-            Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
-            if(uni.getUsuario().getId() != null){
-                uni.setUsuario(usuarioRepository.getById(uni.getUsuario().getId()));
-            }
-            for (Permissao permissao : uni.getPermissao()) {
-                UnidadeUsuario uniUsu = new UnidadeUsuario();
-                uniUsu.setUnidade(unidadeSalvar);
-
-                if (uni.getUsuario().getSenha() != null && Strings.isNotBlank(uni.getUsuario().getSenha()) && Strings.isNotEmpty(uni.getUsuario().getSenha())) {
-                    final String senha = User.generatePasswordBCrypt(uni.getUsuario().getSenha());
-                    uni.getUsuario().setSenha(senha);
-                }else{
-                    final String senha = User.generatePasswordBCrypt("teste001");
-                    uni.getUsuario().setSenha(senha);
-                }
-
-                uniUsu.setUsuario(uni.getUsuario());
-                Permissao permissao1 = permissaoRepository.findPermissaoByName(permissao.getDescricao());
-                uniUsu.setPermissao(permissao1);
-                finalUnidadeUsuarioSalvar.add(uniUsu);
-            }
-        });
-        unidadeUsuarioSalvar = unidadeUsuarioRepository.saveAllAndFlush(unidadeUsuarioSalvar);
+    @Transactional
+    public ResponseDTO saveUnidadeUsuario(List<UnidadeUsuarioDTO> unidadeUsuarios) {
+        Usuario usuario = new Usuario();
         if (unidadeUsuarios.isEmpty()) {
-            return ResponseDTO.err("Erro ao cadastrar usuario");
-        } else {
-            return ResponseDTO.ok("Usuario cadastrado com sucesso");
+            return ResponseDTO.err("Erro ao cadastrar usuário");
         }
 
+        List<UnidadeUsuario> unidadeUsuarioSalvar = new ArrayList<>();
+
+        for (UnidadeUsuarioDTO uni : unidadeUsuarios) {
+            if(uni.getId() == null) {
+                Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
+
+                if (usuario.getId() == null) {
+                    usuario = saveOrUpdateUsuario(uni.getUsuario());
+                }
+                unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidadeSalvar, usuario, uni.getPermissao(), true));
+            }else{
+                Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
+                usuario = saveOrUpdateUsuario(uni.getUsuario());
+                unidadeUsuarioSalvar.addAll(createUnidadeUsuarioListAtualiza(unidadeSalvar, usuario, uni.getPermissao(),uni.isAtivo()));
+            }
+        }
+
+        unidadeUsuarioRepository.saveAllAndFlush(unidadeUsuarioSalvar);
+        this.validaPermissoes(unidadeUsuarioSalvar);
+        return ResponseDTO.ok("Usuário cadastrado com sucesso");
+    }
+
+    void validaPermissoes(List<UnidadeUsuario> unidadeUsuarios) {
+        if (unidadeUsuarios.isEmpty()) {
+            return;
+        }
+
+        Usuario user = unidadeUsuarios.stream().findFirst().map(UnidadeUsuario::getUsuario).orElse(null);
+        if (user == null) {
+            return;
+        }
+
+        List<Permissao> permissoesUnicas = unidadeUsuarios.stream()
+            .map(UnidadeUsuario::getPermissao)
+            .collect(Collectors.toList());
+        permissoesUnicas.forEach((perm)->{
+            if (usuarioRepository.countPermissaoByUsuario(user.getId(), perm.getId()) == 0) {
+                System.out.println(perm.toString());
+                usuarioRepository.savePermissao(user.getId(), perm.getId());
+            }
+        });
+    }
+
+    private Usuario saveOrUpdateUsuario(Usuario usuario) {
+        String senha = Strings.isNotBlank(usuario.getSenha()) ? User.generatePasswordBCrypt(usuario.getSenha()) :
+            User.generatePasswordBCrypt("teste001");
+        usuario.setSenha(senha);
+        return usuarioRepository.save(usuario);
+    }
+
+    private List<UnidadeUsuario> createUnidadeUsuarioList(Unidade unidade, Usuario usuario, List<Permissao> permissoes, boolean ativo) {
+        return permissoes.stream()
+            .map(permissao -> {
+                UnidadeUsuario uniUsu = new UnidadeUsuario();
+                uniUsu.setUnidade(unidade);
+                uniUsu.setUsuario(usuario);
+                uniUsu.setPermissao(permissaoRepository.findPermissaoByName(permissao.getDescricao()));
+                uniUsu.setAtivo(ativo);
+                return uniUsu;
+            })
+            .collect(Collectors.toList());
+    }
+
+    private List<UnidadeUsuario> createUnidadeUsuarioListAtualiza(Unidade unidade, Usuario usuario, List<Permissao> permissoes, boolean ativo) {
+        return permissoes.stream()
+            .map(permissao -> {
+                UnidadeUsuario uniUsu = new UnidadeUsuario();
+                permissao = permissaoRepository.findPermissaoByName(permissao.getDescricao());
+                uniUsu.setId(unidadeUsuarioRepository.findIdByUsuarioIdPermissaoID(usuario.getId(), permissao.getId(), unidade.getId()));
+                uniUsu.setUnidade(unidade);
+                uniUsu.setUsuario(usuario);
+                uniUsu.setPermissao(permissao);
+                uniUsu.setAtivo(ativo);
+                return uniUsu;
+            })
+            .collect(Collectors.toList());
     }
 
 
-    }
+
+}

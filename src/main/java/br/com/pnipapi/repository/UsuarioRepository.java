@@ -3,12 +3,14 @@ package br.com.pnipapi.repository;
 import br.com.pnipapi.model.Permissao;
 import br.com.pnipapi.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -34,7 +36,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
 
     Optional<Usuario> findById(@Param("id") Long id);
 
-    Optional<Usuario> findByUuid(@Param("uuid") UUID uuid);
+    Optional<Usuario> findAllByUuid(@Param("uuid") UUID uuid);
 
 
     @Query(value = """
@@ -51,4 +53,19 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     JOIN unidade_usuario  uu ON u.id = uu.id_usuario  
 """, nativeQuery = true)
     List<Usuario> findUsuariosDip();
+
+    @Modifying
+    @Query(value="""
+   INSERT INTO usuario_permissao (id_usuario, id_permissao) VALUES(:id_usuario, :id_permissao)
+        """, nativeQuery = true)
+    void savePermissao(@Param("id_usuario") Long id_usuario, @Param("id_permissao") Long id_permissao);
+
+    @Query(value = """
+    SELECT COUNT(*) FROM usuario_permissao up
+    WHERE up.id_usuario = :id_usuario AND up.id_permissao = :id_permissao
+""", nativeQuery = true)
+    int countPermissaoByUsuario(@Param("id_usuario") Long idUsuario, @Param("id_permissao") Long idPermissao);
+
+
+
 }
