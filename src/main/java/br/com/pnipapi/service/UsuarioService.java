@@ -133,4 +133,22 @@ public class UsuarioService {
             return this.unidadeUsuarioService.saveUnidadeUsuario(unidadeUsuarios);
         }
     }
+
+    public ResponseDTO ativaInativa(String uuid){
+        Usuario user = new Usuario();
+        UUID uuidObj = UUID.fromString(uuid);
+        user = usuarioRepository.findAllByUuid(uuidObj).get();
+        if (!user.isAtivo()) {
+            user.setAtivo(true);
+        } else {
+            user.setAtivo(false);
+        }
+        user = usuarioRepository.save(user);
+        if(user != null){
+            return ResponseDTO.ok("Usuário atualizado com sucesso");
+
+        }else{
+            return ResponseDTO.err("Erro au atualizar usuario");
+        }
+    }
 }

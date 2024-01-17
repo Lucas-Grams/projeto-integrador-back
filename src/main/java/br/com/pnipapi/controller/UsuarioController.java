@@ -51,6 +51,11 @@ public class UsuarioController {
         return usuarioService.saveUsuarioUnidade(unidadeUsuarios);
     }
 
+    @PostMapping("/ativaInativa")
+    public ResponseDTO ativaInativa(@RequestBody String uuid){
+        return usuarioService.ativaInativa(uuid);
+    }
+
 
 
 
