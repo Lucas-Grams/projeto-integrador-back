@@ -79,19 +79,14 @@ public class UsuarioService {
         }).filter(Objects::nonNull).toList();
     }
 
-    public Usuario findByUuid(String uuid){
+    public Usuario findUsuarioByUuid(String uuid){
         UUID uuidObj = UUID.fromString(uuid);
         return usuarioRepository.findAllByUuid(uuidObj).get();
     }
 
     public List<Usuario> findUsuariosUnidade(String uuid) {
-        List<Usuario> usuarios = usuarioRepository.findUsuariosUnidade(uuid);
+        List<Usuario> usuarios = usuarioRepository.findUsuariosUnidadeByUuid(uuid);
 
-//        usuarios.forEach((user)->{
-//            List<Permissao> permissoes = this.findPermissoesByUsuarioId(user.getId(), this.unidadeRepository.findIdByUuid(uuid));
-//            System.out.println(permissoes.toString());
-//            user.setPermissoes(permissoes);
-//        });
 
         Map<Long, Usuario> usuarioMap = usuarios.stream()
             .collect(Collectors.toMap(Usuario::getId, Function.identity(), (existing, replacement) -> replacement));
@@ -99,56 +94,56 @@ public class UsuarioService {
 
         return usuariosUnicos;
     }
-
-    public List<Permissao> findPermissoesByUsuarioId(Long id, Long id_unidade){
-        return this.unidadeUsuarioRepository.findPermissoesByUsuarioId(id, id_unidade);
-    }
-
-
-    List<Usuario>findRepresentantes(long id_unidade){
-        return this.usuarioRepository.findRepresentantes(id_unidade);
-    }
-
     public Optional<Usuario> findById(Long id){return this.usuarioRepository.findById(id);}
 
     public List<Usuario> findUsuariosDip(){
         return usuarioRepository.findUsuariosDip();
     }
 
-    public ResponseDTO saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
-        AtomicBoolean temUnidade = new AtomicBoolean(true);
-        unidadeUsuarios.forEach((uni)->{
-            if(!(uni.getUnidade().getNome().length()>2)){
-                temUnidade.set(false);
-            }
-        });
-        if(!temUnidade.get()){
-            Usuario user = new Usuario();
-            UnidadeUsuarioDTO uniUser = new UnidadeUsuarioDTO();
-            uniUser = unidadeUsuarios.get(0);
-            user = uniUser.getUsuario();
-            user = this.save(user);
-            return ResponseDTO.ok("Usuario cadastrado com sucesso");
-        }else{
-            return this.unidadeUsuarioService.saveUnidadeUsuario(unidadeUsuarios);
-        }
+    public String saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
+       try{
+           AtomicBoolean temUnidade = new AtomicBoolean(true);
+           unidadeUsuarios.forEach((uni)->{
+               if(!(uni.getUnidade().getNome().length()>2)){
+                   temUnidade.set(false);
+               }
+           });
+           if(!temUnidade.get()){
+               Usuario user = new Usuario();
+               UnidadeUsuarioDTO uniUser = new UnidadeUsuarioDTO();
+               uniUser = unidadeUsuarios.get(0);
+               user = uniUser.getUsuario();
+               user = this.save(user);
+               return "OK";
+           }else{
+               return this.unidadeUsuarioService.saveUnidadeUsuario(unidadeUsuarios);
+           }
+       }catch (Exception e){
+           e.printStackTrace();
+           return "ERROR";
+       }
     }
 
-    public ResponseDTO ativaInativa(String uuid){
-        Usuario user = new Usuario();
-        UUID uuidObj = UUID.fromString(uuid);
-        user = usuarioRepository.findAllByUuid(uuidObj).get();
-        if (!user.isAtivo()) {
-            user.setAtivo(true);
-        } else {
-            user.setAtivo(false);
-        }
-        user = usuarioRepository.save(user);
-        if(user != null){
-            return ResponseDTO.ok("Usuário atualizado com sucesso");
+    public String ativaInativa(String uuid){
+       try{
+           Usuario user = new Usuario();
+           UUID uuidObj = UUID.fromString(uuid);
+           user = usuarioRepository.findAllByUuid(uuidObj).get();
+           if (!user.isAtivo()) {
+               user.setAtivo(true);
+           } else {
+               user.setAtivo(false);
+           }
+           user = usuarioRepository.save(user);
+           if(user != null){
+               return "OK";
 
-        }else{
-            return ResponseDTO.err("Erro au atualizar usuario");
-        }
+           }else{
+               return "ERROR";
+           }
+       }catch (Exception e){
+           e.printStackTrace();
+           return "ERROR";
+       }
     }
 }

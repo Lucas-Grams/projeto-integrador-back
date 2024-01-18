@@ -76,10 +76,10 @@ public class UnidadeUsuarioService{
         }
 
     @Transactional
-    public ResponseDTO saveUnidadeUsuario(List<UnidadeUsuarioDTO> unidadeUsuarios) {
+    public String saveUnidadeUsuario(List<UnidadeUsuarioDTO> unidadeUsuarios) {
         Usuario usuario = new Usuario();
         if (unidadeUsuarios.isEmpty()) {
-            return ResponseDTO.err("Erro ao cadastrar usuário");
+            return "ERROR";
         }
 
         List<UnidadeUsuario> unidadeUsuarioSalvar = new ArrayList<>();
@@ -101,7 +101,7 @@ public class UnidadeUsuarioService{
 
         unidadeUsuarioRepository.saveAllAndFlush(unidadeUsuarioSalvar);
         this.validaPermissoes(unidadeUsuarioSalvar);
-        return ResponseDTO.ok("Usuário cadastrado com sucesso");
+        return "OK";
     }
 
     void validaPermissoes(List<UnidadeUsuario> unidadeUsuarios) {
@@ -118,7 +118,7 @@ public class UnidadeUsuarioService{
             .map(UnidadeUsuario::getPermissao)
             .collect(Collectors.toList());
         permissoesUnicas.forEach((perm)->{
-            if (usuarioRepository.countPermissaoByUsuario(user.getId(), perm.getId()) == 0) {
+            if (usuarioRepository.countPermissaoByIdUsuarioIdPermissao(user.getId(), perm.getId()) == 0) {
                 System.out.println(perm.toString());
                 usuarioRepository.savePermissao(user.getId(), perm.getId());
             }
@@ -159,7 +159,5 @@ public class UnidadeUsuarioService{
             })
             .collect(Collectors.toList());
     }
-
-
 
 }
