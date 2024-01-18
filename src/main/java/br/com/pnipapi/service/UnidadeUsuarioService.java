@@ -2,14 +2,8 @@ package br.com.pnipapi.service;
 
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
-import br.com.pnipapi.model.Permissao;
-import br.com.pnipapi.model.Unidade;
-import br.com.pnipapi.model.UnidadeUsuario;
-import br.com.pnipapi.model.Usuario;
-import br.com.pnipapi.repository.PermissaoRepository;
-import br.com.pnipapi.repository.UnidadeRepository;
-import br.com.pnipapi.repository.UnidadeUsuarioRepository;
-import br.com.pnipapi.repository.UsuarioRepository;
+import br.com.pnipapi.model.*;
+import br.com.pnipapi.repository.*;
 import br.com.pnipapi.utils.User;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
@@ -26,14 +20,16 @@ public class UnidadeUsuarioService{
     UsuarioRepository usuarioRepository;
     PermissaoRepository permissaoRepository;
     UnidadeRepository unidadeRepository;
+    EnderecoRepository enderecoRepository;
 
 
     public UnidadeUsuarioService(UnidadeUsuarioRepository unidadeUsuarioRepository, UsuarioRepository usuarioRepository, PermissaoRepository permissaoRepository,
-                                 UnidadeRepository unidadeRepository){
+                                 UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository){
         this.unidadeUsuarioRepository = unidadeUsuarioRepository;
         this.usuarioRepository = usuarioRepository;
         this.permissaoRepository = permissaoRepository;
         this.unidadeRepository = unidadeRepository;
+        this.enderecoRepository = enderecoRepository;
     }
 
 
@@ -75,8 +71,7 @@ public class UnidadeUsuarioService{
         }
 
         public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(String uuid){
-            UUID uuidObj = UUID.fromString(uuid);
-            Unidade unidade = unidadeRepository.findAllByUuid(uuidObj).orElse(null);
+            Unidade unidade = unidadeRepository.findUnidadeByUuid(uuid);
             if (unidade == null) {
                 return new ArrayList<>();
             }
@@ -120,12 +115,12 @@ public class UnidadeUsuarioService{
 
         for (UnidadeUsuarioDTO uni : unidadeUsuarios) {
             if(uni.getId() == null) {
-                Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
+                Unidade unidade = unidadeRepository.getById(uni.getUnidade().getId());
 
                 if (usuario.getId() == null) {
                     usuario = saveOrUpdateUsuario(uni.getUsuario());
                 }
-                unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidadeSalvar, usuario, uni.getPermissao(), true));
+                unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidade, usuario, uni.getPermissao(), true));
             }else{
                 Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
                 usuario = saveOrUpdateUsuario(uni.getUsuario());
@@ -138,8 +133,54 @@ public class UnidadeUsuarioService{
         return ResponseDTO.ok("Usuário cadastrado com sucesso");
     }
 
-    public ResponseDTO saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
-        Unidade undiade = new Unidade();
+    @Transactional
+    public String saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
+        try{
+            Unidade unidade = new Unidade();
+            if (unidadeUsuarios.isEmpty()) {
+                return "ERROR";
+            }
+
+            List<UnidadeUsuario> unidadeUsuarioSalvar = new ArrayList<>();
+
+            for (UnidadeUsuarioDTO uni : unidadeUsuarios) {
+                unidade = uni.getUnidade();
+                Usuario usuario = new Usuario();
+                if(uni.getId() == null) {
+                    if(uni.getUsuario().getId() == null){
+                        if(usuarioRepository.countUsuarioByCpf(uni.getUsuario().getCpf()) == 0){
+                            usuario = this.saveOrUpdateUsuario(uni.getUsuario());
+                        }else{
+                            usuario = usuarioRepository.findUsuarioByCpf(uni.getUsuario().getCpf()).get();
+                        }
+                    }else{
+                        usuario = usuarioRepository.findUsuarioById(uni.getUsuario().getId());
+                    }
+
+
+                    if (uni.getId() == null) {
+                        unidade = unidadeRepository.save(unidade.toUnidade(unidade));
+                    }
+                    if(uni.getUnidade().getEndereco() != null) {
+                        Endereco endereco = enderecoRepository.save(uni.getUnidade().getEndereco());
+                        unidade.setEndereco(endereco);
+                    }
+                    unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidade, usuario, uni.getPermissao(), true));
+                }else{
+                    usuario = usuarioRepository.getById(uni.getUsuario().getId());
+                    unidade = unidadeRepository.save(uni.getUnidade());
+                    Endereco endereco = enderecoRepository.save(uni.getUnidade().getEndereco());
+                    unidade.setEndereco(endereco);
+                    unidadeUsuarioSalvar.addAll(createUnidadeUsuarioListAtualiza(unidade, usuario, uni.getPermissao(),uni.isAtivo()));
+                }
+            }
+            unidadeUsuarioRepository.saveAllAndFlush(unidadeUsuarioSalvar);
+            this.validaPermissoes(unidadeUsuarioSalvar);
+            return "OK";
+        }catch (Exception e){
+            e.printStackTrace();
+            return "ERROR";
+        }
     }
 
     void validaPermissoes(List<UnidadeUsuario> unidadeUsuarios) {
@@ -156,8 +197,7 @@ public class UnidadeUsuarioService{
             .map(UnidadeUsuario::getPermissao)
             .collect(Collectors.toList());
         permissoesUnicas.forEach((perm)->{
-            if (usuarioRepository.countPermissaoByUsuario(user.getId(), perm.getId()) == 0) {
-                System.out.println(perm.toString());
+            if (usuarioRepository.countPermissaoByUsuarioId(user.getId(), perm.getId()) == 0) {
                 usuarioRepository.savePermissao(user.getId(), perm.getId());
             }
         });
@@ -197,6 +237,8 @@ public class UnidadeUsuarioService{
             })
             .collect(Collectors.toList());
     }
+
+
 
 
 

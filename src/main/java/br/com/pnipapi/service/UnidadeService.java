@@ -39,7 +39,7 @@ public class UnidadeService {
     }
 
     @Transactional
-    public ResponseDTO saveUnidadeUsuario(List<UnidadeUsuarioDTO> unidadeUsuarios) {
+    public String saveUnidadeUsuario(List<UnidadeUsuarioDTO> unidadeUsuarios) {
         try {
             Unidade unidadeSalva;
             AtomicBoolean temUsuario = new AtomicBoolean(true);
@@ -57,55 +57,17 @@ public class UnidadeService {
                 if (unidadeSalva.getUnidadeGerenciadora().getId() > 0) {
                     unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidadeSalva.getUnidadeGerenciadora().getId()));
                 }
-                unidadeSalva = unidadeRepository.save(unidadeSalva);
-                return ResponseDTO.ok("Unidade cadastrada com sucesso!");
+                //unidadeSalva = unidadeRepository.save(unidadeSalva);
+                return "OK";
             } else {
                 return this.unidadeUsuarioService.saveUsuarioUnidade(unidadeUsuarios);
             }
-
-            //////
-
-//            List<UnidadeUsuario> unidadeUsuarios = new ArrayList<>();
-//
-//            Unidade finalUnidadeSalva = unidadeSalva;
-//            Unidade finalUnidadeSalva1 = unidadeSalva;
-//            unidadeSalva.getUsuarios().forEach(usuario -> {
-//                if(usuario.getId() != null){
-//                    usuario = usuarioService.findById(usuario.getId()).get();
-//                    Usuario finalUsuario1 = usuario;
-//                    finalUnidadeSalva1.getUsuarios().forEach((user)->{
-//                        if(finalUsuario1.getId() == user.getId()){
-//                            finalUsuario1.setPermissoes(user.getPermissoes());
-//                        }
-//                    });
-//                }
-//                List<Permissao> permissoes = permissaoRepository.findAllByDescricaoIn(
-//                    usuario.getPermissoes().stream().map(Permissao::getDescricao).toList());
-//
-//                usuario.setPermissoes(new ArrayList<>());
-//
-//                Usuario finalUsuario = usuario;
-//                permissoes.forEach(permissao -> {
-//                    finalUsuario.getPermissoes().add(permissao);
-//
-//                    UnidadeUsuario uu = new UnidadeUsuario(finalUnidadeSalva, finalUsuario, permissao, true);
-//                    unidadeUsuarios.add(uu);
-//                });
-//            });
-//            unidadeUsuarios.forEach((uniUser) ->{
-//                unidadeUsuarioRepository.saveAndFlush(uniUser);
-//            });
-//
-//            return ResponseDTO.ok("Unidade cadastrada com sucesso!", unidadeSalva);
         } catch (DataIntegrityViolationException e) {
-            // Captura específica para violações de integridade
-            return ResponseDTO.err("Erro ao cadastrar unidade: Violação de integridade de dados.");
+            e.printStackTrace();
+            return "ERROR";
         } catch (Exception e) {
-            // Captura de exceções gerais
-            System.out.println(e.getCause() + e.getMessage());
-            return ResponseDTO.err("Erro ao cadastrar unidade" + e.getCause() + e.getMessage());
-        }
-        ///////
+           e.printStackTrace();
+            return "ERROR";
         }
     }
 
@@ -115,43 +77,22 @@ public class UnidadeService {
     }
 
     public List<Unidade> getGerenciadoras(String tipo){
-        return unidadeRepository.getUnidadeByTipo(tipo);
+        return unidadeRepository.findUnidadesByTipo(tipo);
     }
 
     @Transactional
     public void inativa(String uuid){
-        Unidade unidade = this.unidadeRepository.findByUuid(uuid);
+        Unidade unidade = this.unidadeRepository.findUnidadeByUuid(uuid);
         unidade.setUsuarios(this.usuarioService.findRepresentantes(unidade.getId()));
         if(!unidade.getUsuarios().isEmpty()) {
-            unidadeRepository.updateRepresentante(unidade.getId(), unidade.isAtivo() ? false : true);
+            unidadeRepository.updateUsuariosByIdUnidade(unidade.getId(), unidade.isAtivo() ? false : true);
         }
         unidade.setAtivo(unidade.isAtivo() ? false : true);
         unidadeRepository.save(unidade);
     }
 
     public Unidade findByUuid(String uuid){
-        return this.unidadeRepository.findByUuid(uuid);
-    }
-
-    public ResponseDTO<Unidade> update(UnidadeFormDTO unidade){
-        try {
-            Unidade unidadeSalva = new Unidade();
-            unidadeSalva = unidadeSalva.toUnidade(unidade);
-
-            if (unidade.idUnidadeGerenciadora() > 0) {
-                unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidade.idUnidadeGerenciadora()));
-            }
-
-           this.unidadeRepository.save(unidadeSalva);
-            return ResponseDTO.ok("Unidade atualizada com sucesso!", unidadeSalva);
-        } catch (DataIntegrityViolationException e) {
-            // Captura específica para violações de integridade
-            return ResponseDTO.err("Erro ao atualizar unidade: Violação de integridade de dados.");
-        } catch (Exception e) {
-            // Captura de exceções gerais
-            System.out.println(e.getCause() + e.getMessage());
-            return ResponseDTO.err("Erro ao atualizada unidade" + e.getCause() + e.getMessage());
-        }
+        return this.unidadeRepository.findUnidadeByUuid(uuid);
     }
 
     public void validaVinculo(List<UnidadeUsuario> unidadeUsuarios, Long unidadeId){

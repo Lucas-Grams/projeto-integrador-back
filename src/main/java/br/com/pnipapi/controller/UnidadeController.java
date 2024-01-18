@@ -26,7 +26,14 @@ public class UnidadeController {
 
     @PostMapping("/salvar")
     public ResponseDTO save(@RequestBody List<UnidadeUsuarioDTO> unidadeUsuarios){
-        return unidadeService.saveUnidadeUsuario(unidadeUsuarios);
+        String status = unidadeService.saveUnidadeUsuario(unidadeUsuarios);
+        if("OK".equals(status)) {
+            return ResponseDTO.ok("Unidade cadastrada com sucesso!");
+        } else if ("ERROR".equals(status)) {
+            return ResponseDTO.err("Houve um problema no servidor, tente mais tarde.");
+        }else {
+            return null;
+        }
     }
 
     @GetMapping("/findAll")
@@ -45,11 +52,6 @@ public class UnidadeController {
     @GetMapping("findUnidadeByUuid/{uuid}")
     public Unidade findUnidadeByUuid(@PathVariable String uuid){
         return this.unidadeService.findByUuid(uuid);
-    }
-
-    @PostMapping("/update")
-    public ResponseDTO<Unidade> update(@RequestBody UnidadeFormDTO unidade){
-        return unidadeService.update(unidade);
     }
 
     @GetMapping("/findAllTipos")

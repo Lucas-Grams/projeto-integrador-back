@@ -64,8 +64,15 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     SELECT COUNT(*) FROM usuario_permissao up
     WHERE up.id_usuario = :id_usuario AND up.id_permissao = :id_permissao
 """, nativeQuery = true)
-    int countPermissaoByUsuario(@Param("id_usuario") Long idUsuario, @Param("id_permissao") Long idPermissao);
+    int countPermissaoByUsuarioId(@Param("id_usuario") Long idUsuario, @Param("id_permissao") Long idPermissao);
 
 
+    @Query(value = """
+    SELECT COUNT(*) FROM usuario u
+    WHERE u.cpf = :cpf
+""", nativeQuery = true)
+    int countUsuarioByCpf(@Param("cpf") String cpf);
 
+
+Usuario findUsuarioById(@Param("id") Long id);
 }
