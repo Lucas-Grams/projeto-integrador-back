@@ -85,7 +85,7 @@ public class UsuarioService {
     }
 
     public List<Usuario> findUsuariosUnidade(String uuid) {
-        List<Usuario> usuarios = usuarioRepository.findUsuariosUnidadeByUuid(uuid);
+        List<Usuario> usuarios = usuarioRepository.findUsuariosByUuidUnidade(uuid);
 
 
         Map<Long, Usuario> usuarioMap = usuarios.stream()
@@ -94,6 +94,11 @@ public class UsuarioService {
 
         return usuariosUnicos;
     }
+
+
+
+
+
     public Optional<Usuario> findById(Long id){return this.usuarioRepository.findById(id);}
 
     public List<Usuario> findUsuariosDip(){

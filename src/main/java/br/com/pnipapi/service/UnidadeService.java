@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class UnidadeService {
@@ -95,7 +96,7 @@ public class UnidadeService {
     @Transactional
     public void inativa(String uuid){
         Unidade unidade = this.unidadeRepository.findByUuid(uuid);
-        unidade.setUsuarios(this.usuarioService.findRepresentantes(unidade.getId()));
+        unidade.setUsuarios(this.usuarioService.findUsuariosUnidade(uuid));
         if(!unidade.getUsuarios().isEmpty()) {
             unidadeRepository.updateRepresentante(unidade.getId(), unidade.isAtivo() ? false : true);
         }
