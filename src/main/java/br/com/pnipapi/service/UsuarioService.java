@@ -42,12 +42,12 @@ public class UsuarioService {
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
 
         return ResponseDTO.ok("Usuário salvo com sucesso", UsuarioInfo.builder()
-                .cpf(usuarioSalvo.getCpf())
-                .id(usuarioSalvo.getId())
-                .nome(usuarioSalvo.getNome())
-                .email(usuarioSalvo.getEmail())
-                .ativo(usuarioSalvo.isAtivo())
-                .dataCadastro(usuarioSalvo.getDataCadastro()).build());
+            .cpf(usuarioSalvo.getCpf())
+            .id(usuarioSalvo.getId())
+            .nome(usuarioSalvo.getNome())
+            .email(usuarioSalvo.getEmail())
+            .ativo(usuarioSalvo.isAtivo())
+            .dataCadastro(usuarioSalvo.getDataCadastro()).build());
     }
 
     public Usuario save(Usuario usuario){
@@ -60,53 +60,37 @@ public class UsuarioService {
             usuario.setSenha(senha);
         }
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
-          return usuarioSalvo;
+        return usuarioSalvo;
     }
 
 
     public List<UsuarioInfo> findAll() {
         return usuarioRepository.findAll().parallelStream().map(usuario -> {
             return new UsuarioInfo(
-                    usuario.getId(),
-                    usuario.getCpf(),
-                    usuario.getEmail(),
-                    usuario.getNome(),
-                    usuario.getDataCadastro(),
-                    usuario.getUltimoAcesso(),
-                    usuario.getUuid(),
-                    usuario.isAtivo(),
-                    usuario.getPermissoes());
+                usuario.getId(),
+                usuario.getCpf(),
+                usuario.getEmail(),
+                usuario.getNome(),
+                usuario.getDataCadastro(),
+                usuario.getUltimoAcesso(),
+                usuario.getUuid(),
+                usuario.isAtivo(),
+                usuario.getPermissoes());
         }).filter(Objects::nonNull).toList();
     }
 
-    public Usuario findByUuid(String uuid){
+    public Usuario findUsuarioByUuid(String uuid){
         UUID uuidObj = UUID.fromString(uuid);
         return usuarioRepository.findAllByUuid(uuidObj).get();
     }
 
     public List<Usuario> findUsuariosUnidade(String uuid) {
-        List<Usuario> usuarios = usuarioRepository.findUsuariosUnidade(uuid);
-
-//        usuarios.forEach((user)->{
-//            List<Permissao> permissoes = this.findPermissoesByUsuarioId(user.getId(), this.unidadeRepository.findIdByUuid(uuid));
-//            System.out.println(permissoes.toString());
-//            user.setPermissoes(permissoes);
-//        });
-
+        List<Usuario> usuarios = usuarioRepository.findUsuariosByUuidUnidade(uuid);
         Map<Long, Usuario> usuarioMap = usuarios.stream()
             .collect(Collectors.toMap(Usuario::getId, Function.identity(), (existing, replacement) -> replacement));
         List<Usuario> usuariosUnicos = usuarioMap.values().stream().collect(Collectors.toList());
 
         return usuariosUnicos;
-    }
-
-    public List<Permissao> findPermissoesByUsuarioId(Long id, Long id_unidade){
-        return this.unidadeUsuarioRepository.findPermissoesByUsuarioId(id, id_unidade);
-    }
-
-
-    List<Usuario>findRepresentantes(long id_unidade){
-        return this.usuarioRepository.findRepresentantes(id_unidade);
     }
 
     public Optional<Usuario> findById(Long id){return this.usuarioRepository.findById(id);}
@@ -115,22 +99,52 @@ public class UsuarioService {
         return usuarioRepository.findUsuariosDip();
     }
 
-    public ResponseDTO saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
-        AtomicBoolean temUnidade = new AtomicBoolean(true);
-        unidadeUsuarios.forEach((uni)->{
-            if(!(uni.getUnidade().getNome().length()>2)){
-                temUnidade.set(false);
+    public List<Usuario> findUsuariosEmpresas(){return usuarioRepository.findUsuariosEmpresas();}
+
+    public String saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
+        try{
+            AtomicBoolean temUnidade = new AtomicBoolean(true);
+            unidadeUsuarios.forEach((uni)->{
+                if(!(uni.getUnidade().getNome().length()>2)){
+                    temUnidade.set(false);
+                }
+            });
+            if(!temUnidade.get()){
+                Usuario user = new Usuario();
+                UnidadeUsuarioDTO uniUser = new UnidadeUsuarioDTO();
+                uniUser = unidadeUsuarios.get(0);
+                user = uniUser.getUsuario();
+                user = this.save(user);
+                return "OK";
+            }else{
+                return this.unidadeUsuarioService.saveUnidadeUsuario(unidadeUsuarios);
             }
-        });
-        if(!temUnidade.get()){
+        }catch (Exception e){
+            e.printStackTrace();
+            return "ERROR";
+        }
+    }
+
+    public String ativaInativa(String uuid){
+        try{
             Usuario user = new Usuario();
-            UnidadeUsuarioDTO uniUser = new UnidadeUsuarioDTO();
-            uniUser = unidadeUsuarios.get(0);
-            user = uniUser.getUsuario();
-            user = this.save(user);
-            return ResponseDTO.ok("Usuario cadastrado com sucesso");
-        }else{
-            return this.unidadeUsuarioService.saveUnidadeUsuario(unidadeUsuarios);
+            UUID uuidObj = UUID.fromString(uuid);
+            user = usuarioRepository.findAllByUuid(uuidObj).get();
+            if (!user.isAtivo()) {
+                user.setAtivo(true);
+            } else {
+                user.setAtivo(false);
+            }
+            user = usuarioRepository.save(user);
+            if(user != null){
+                return "OK";
+
+            }else{
+                return "ERROR";
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return "ERROR";
         }
     }
 }

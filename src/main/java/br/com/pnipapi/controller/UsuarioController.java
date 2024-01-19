@@ -35,7 +35,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/findByUuid/{uuid}")
-    public Usuario findByUuid(@PathVariable String uuid){return usuarioService.findByUuid(uuid);}
+    public Usuario findUsuarioByUuid(@PathVariable String uuid){return usuarioService.findUsuarioByUuid(uuid);}
 
     @GetMapping("/findUsuariosUnidade/{uuid}")
     public List<Usuario> findUsuariosUnidade(@PathVariable String uuid){return usuarioService.findUsuariosUnidade(uuid);}
@@ -43,15 +43,32 @@ public class UsuarioController {
     @GetMapping("/findUsuariosDip")
     public List<Usuario> findUsuariosDip(){return usuarioService.findUsuariosDip();}
 
+    @GetMapping("/findUsuariosEmpresas")
+    public List<Usuario> findUsuariosEmpresas(){return usuarioService.findUsuariosEmpresas();}
+
+
     @GetMapping("/findUnidadesByUsuarioUuid/{uuid}")
     public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(@PathVariable String uuid){return unidadeUsuarioService.findUnidadesByUsuarioUuid(uuid);}
 
     @PostMapping("/salvarUsuario")
     public ResponseDTO save(@RequestBody List<UnidadeUsuarioDTO> unidadeUsuarios){
-        return usuarioService.saveUsuarioUnidade(unidadeUsuarios);
+        String status = usuarioService.saveUsuarioUnidade(unidadeUsuarios);
+        if("OK".equals(status)){
+            return ResponseDTO.ok("Usuário cadastrado com sucesso!");
+        } else if ("ERROR".equals(status)) {
+            return ResponseDTO.err("Houve um erro, usuário não cadastrado, tente mais tarde!");
+        }
+        return null;
     }
 
-
-
-
+    @PostMapping("/ativaInativa")
+    public ResponseDTO ativaInativa(@RequestBody String uuid) {
+        String status = usuarioService.ativaInativa(uuid);
+        if ("OK".equals(status)) {
+            return ResponseDTO.ok("Usuário Inativado/ativado com sucesso!");
+        } else if ("ERROR".equals(status)) {
+            return ResponseDTO.err("Houve um erro, usuário não inativado/ativado, tente mais tarde!");
+        }
+        return null;
+    }
 }

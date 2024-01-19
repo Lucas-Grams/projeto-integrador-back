@@ -2,9 +2,11 @@ package br.com.pnipapi.controller;
 
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeFormDTO;
+import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.TipoUnidade;
 import br.com.pnipapi.model.Unidade;
 import br.com.pnipapi.service.UnidadeService;
+import br.com.pnipapi.service.UnidadeUsuarioService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,12 +16,24 @@ import java.util.List;
 @RequestMapping("/unidade")
 public class UnidadeController {
     UnidadeService unidadeService;
+    UnidadeUsuarioService unidadeUsuarioService;
 
-    public UnidadeController(UnidadeService unidadeService){ this.unidadeService = unidadeService; }
+    public UnidadeController(UnidadeService unidadeService, UnidadeUsuarioService unidadeUsuarioService)
+    {
+        this.unidadeService = unidadeService;
+        this.unidadeUsuarioService = unidadeUsuarioService;
+    }
 
     @PostMapping("/salvar")
-    public ResponseDTO<Unidade> save(@RequestBody UnidadeFormDTO unidade){
-        return unidadeService.save(unidade);
+    public ResponseDTO save(@RequestBody List<UnidadeUsuarioDTO> unidadeUsuarios){
+        String status = unidadeService.saveUnidadeUsuario(unidadeUsuarios);
+        if("OK".equals(status)) {
+            return ResponseDTO.ok("Unidade cadastrada com sucesso!");
+        } else if ("ERROR".equals(status)) {
+            return ResponseDTO.err("Houve um problema no servidor, tente mais tarde.");
+        }else {
+            return null;
+        }
     }
 
     @GetMapping("/findAll")
@@ -40,11 +54,11 @@ public class UnidadeController {
         return this.unidadeService.findByUuid(uuid);
     }
 
-    @PostMapping("/update")
-    public ResponseDTO<Unidade> update(@RequestBody UnidadeFormDTO unidade){
-        return unidadeService.update(unidade);
-    }
-
     @GetMapping("/findAllTipos")
     public ResponseDTO<List<TipoUnidade>> findAllTipos(){return this.unidadeService.findAllTipos();}
+
+    @GetMapping("/findUsuariosByUnidadeUuid/{uuid}")
+    public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(@PathVariable String uuid){return unidadeUsuarioService.findUsuariosByUnidadeUuid(uuid);}
+
+
 }
