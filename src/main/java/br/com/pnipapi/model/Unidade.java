@@ -37,7 +37,7 @@ public class Unidade {
     @Column(nullable = false)
     private String tipo;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(nullable = false, name = "id_endereco")
     private Endereco endereco;
 

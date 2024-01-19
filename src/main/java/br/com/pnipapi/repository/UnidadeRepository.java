@@ -32,6 +32,9 @@ public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
     @Query(value="UPDATE unidade_usuario SET ativo =:ativo  WHERE id_unidade =:idUnidade", nativeQuery = true)
     void updateUsuariosByIdUnidade(long idUnidade, boolean  ativo);
 
+    Long countUnidadeByNomeAndAtivo(@Param("nome") String nome, @Param("ativo") boolean ativo);
+
+    Unidade findByNome(@Param("nome") String nome);
 
     Optional<Unidade> findAllByUuid(@Param("uuid") UUID uuid);
 }

@@ -57,7 +57,7 @@ public class UnidadeService {
                 if (unidadeSalva.getUnidadeGerenciadora().getId() > 0) {
                     unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidadeSalva.getUnidadeGerenciadora().getId()));
                 }
-                //unidadeSalva = unidadeRepository.save(unidadeSalva);
+                unidadeSalva = unidadeRepository.save(unidadeSalva);
                 return "OK";
             } else {
                 return this.unidadeUsuarioService.saveUsuarioUnidade(unidadeUsuarios);

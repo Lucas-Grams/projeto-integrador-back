@@ -136,17 +136,25 @@ public class UnidadeUsuarioService{
     @Transactional
     public String saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
         try{
-            Unidade unidade = new Unidade();
             if (unidadeUsuarios.isEmpty()) {
                 return "ERROR";
             }
 
             List<UnidadeUsuario> unidadeUsuarioSalvar = new ArrayList<>();
-
+            Unidade unidade = new Unidade();
             for (UnidadeUsuarioDTO uni : unidadeUsuarios) {
-                unidade = uni.getUnidade();
+                Unidade unidadeSalvar = uni.getUnidade().toUnidade(uni.getUnidade());
                 Usuario usuario = new Usuario();
                 if(uni.getId() == null) {
+                    if(uni.getUnidade().getId() == null){
+                        if(unidadeRepository.countUnidadeByNomeAndAtivo(uni.getUnidade().getNome(), true)<=0){
+                            unidade = unidadeRepository.save(unidadeSalvar);
+                        }else{
+                            unidade = unidadeRepository.findByNome(uni.getUnidade().getNome());
+                        }
+                    }else{
+                        unidade = unidadeRepository.save(unidadeSalvar);
+                    }
                     if(uni.getUsuario().getId() == null){
                         if(usuarioRepository.countUsuarioByCpf(uni.getUsuario().getCpf()) == 0){
                             usuario = this.saveOrUpdateUsuario(uni.getUsuario());
@@ -155,15 +163,6 @@ public class UnidadeUsuarioService{
                         }
                     }else{
                         usuario = usuarioRepository.findUsuarioById(uni.getUsuario().getId());
-                    }
-
-
-                    if (uni.getId() == null) {
-                        unidade = unidadeRepository.save(unidade.toUnidade(unidade));
-                    }
-                    if(uni.getUnidade().getEndereco() != null) {
-                        Endereco endereco = enderecoRepository.save(uni.getUnidade().getEndereco());
-                        unidade.setEndereco(endereco);
                     }
                     unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidade, usuario, uni.getPermissao(), true));
                 }else{
