@@ -66,45 +66,26 @@ public class Unidade {
     )
     private List<Usuario> usuarios;
 
-    public Unidade toUnidade(UnidadeFormDTO uni){
+    public Unidade toUnidade(Unidade uni){
         Unidade unidadeNova = new Unidade();
-        if(uni.id() != null){
-            unidadeNova.setId(uni.id());
+        if(uni.getId() != null){
+            unidadeNova.setId(uni.getId());
         }
-        unidadeNova.setAtivo(true);
-        unidadeNova.setNome(uni.nome());
-        unidadeNova.setTipo(uni.tipo());
+        unidadeNova.setNome(uni.getNome());
+        unidadeNova.setTipo(uni.getTipo());
         unidadeNova.setDataCadastro(Date.valueOf(LocalDate.now()));
 
         Endereco endereco = new Endereco();
-        endereco.setUf(uni.uf());
-        endereco.setCidade(uni.cidade());
-        endereco.setBairro(uni.bairro());
-        endereco.setRua(uni.rua());
-        endereco.setComplemento(uni.complemento());
-        endereco.setNumero(uni.numero());
-        endereco.setCep(uni.cep());
-        endereco.setLatitude(uni.latitude());
-        endereco.setLongitude(uni.longitude());
+        endereco.setUf(uni.endereco.getUf());
+        endereco.setCidade(uni.endereco.getCidade());
+        endereco.setBairro(uni.endereco.getBairro());
+        endereco.setRua(uni.endereco.getRua());
+        endereco.setComplemento(uni.endereco.getComplemento());
+        endereco.setNumero(uni.endereco.getNumero());
+        endereco.setCep(uni.endereco.getCep());
+        endereco.setLatitude(uni.endereco.getLatitude());
+        endereco.setLongitude(uni.endereco.getLongitude());
         unidadeNova.setEndereco(endereco);
-
-        List<Usuario> usuarios = new ArrayList<>();
-        uni.usuarios().forEach((user)->{
-            if (user.getSenha() != null && Strings.isNotBlank(user.getSenha()) && Strings.isNotEmpty(user.getSenha())) {
-                final String senha = new BCryptPasswordEncoder().encode(user.getSenha());
-                user.setSenha(senha);
-            }else{
-                final String senha = new BCryptPasswordEncoder().encode("teste001");
-                user.setSenha(senha);
-            }
-            if(user.getDataCadastro() == null){
-                user.setDataCadastro(Date.valueOf(LocalDate.now()));
-            }
-            usuarios.add(user);
-        });
-
-        unidadeNova.setUsuarios(usuarios);
         return unidadeNova;
     }
-
 }

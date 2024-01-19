@@ -1,18 +1,14 @@
 package br.com.pnipapi.service;
-
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.dto.UsuarioInfo;
-import br.com.pnipapi.model.Permissao;
 import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.repository.UnidadeRepository;
 import br.com.pnipapi.repository.UnidadeUsuarioRepository;
 import br.com.pnipapi.repository.UsuarioRepository;
 import br.com.pnipapi.utils.User;
 import org.apache.logging.log4j.util.Strings;
-
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -40,7 +36,6 @@ public class UsuarioService {
             usuario.setSenha(senha);
         }
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
-
         return ResponseDTO.ok("Usuário salvo com sucesso", UsuarioInfo.builder()
                 .cpf(usuarioSalvo.getCpf())
                 .id(usuarioSalvo.getId())
@@ -51,7 +46,6 @@ public class UsuarioService {
     }
 
     public Usuario save(Usuario usuario){
-
         if (usuario.getSenha() != null && Strings.isNotBlank(usuario.getSenha()) && Strings.isNotEmpty(usuario.getSenha())) {
             final String senha = User.generatePasswordBCrypt(usuario.getSenha());
             usuario.setSenha(senha);
@@ -87,17 +81,15 @@ public class UsuarioService {
     public List<Usuario> findUsuariosUnidade(String uuid) {
         List<Usuario> usuarios = usuarioRepository.findUsuariosByUuidUnidade(uuid);
 
-
         Map<Long, Usuario> usuarioMap = usuarios.stream()
             .collect(Collectors.toMap(Usuario::getId, Function.identity(), (existing, replacement) -> replacement));
         List<Usuario> usuariosUnicos = usuarioMap.values().stream().collect(Collectors.toList());
-
         return usuariosUnicos;
     }
 
-
-
-
+    List<Usuario>findRepresentantes(long id_unidade){
+        return this.usuarioRepository.findRepresentantes(id_unidade);
+    }
 
     public Optional<Usuario> findById(Long id){return this.usuarioRepository.findById(id);}
 

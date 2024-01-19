@@ -1,14 +1,11 @@
 package br.com.pnipapi.controller;
-
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.dto.UsuarioInfo;
-import br.com.pnipapi.model.UnidadeUsuario;
 import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.service.UnidadeUsuarioService;
 import br.com.pnipapi.service.UsuarioService;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.Valid;
 import java.util.List;
 
@@ -34,19 +31,19 @@ public class UsuarioController {
         return usuarioService.findAll();
     }
 
-    @GetMapping("/findByUuid/{uuid}")
+    @GetMapping("/find-by-uuid/{uuid}")
     public Usuario findUsuarioByUuid(@PathVariable String uuid){return usuarioService.findUsuarioByUuid(uuid);}
 
-    @GetMapping("/findUsuariosUnidade/{uuid}")
+    @GetMapping("/find-usuarios-unidade/{uuid}")
     public List<Usuario> findUsuariosUnidade(@PathVariable String uuid){return usuarioService.findUsuariosUnidade(uuid);}
 
-    @GetMapping("/findUsuariosDip")
+    @GetMapping("/find-usuarios-dip")
     public List<Usuario> findUsuariosDip(){return usuarioService.findUsuariosDip();}
 
-    @GetMapping("/findUnidadesByUsuarioUuid/{uuid}")
+    @GetMapping("/find-unidadesby-usuario-uuid/{uuid}")
     public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(@PathVariable String uuid){return unidadeUsuarioService.findUnidadesByUsuarioUuid(uuid);}
 
-    @PostMapping("/salvarUsuario")
+    @PostMapping("/salvar-usuario")
     public ResponseDTO save(@RequestBody List<UnidadeUsuarioDTO> unidadeUsuarios){
         String status = usuarioService.saveUsuarioUnidade(unidadeUsuarios);
         if("OK".equals(status)){
@@ -57,7 +54,7 @@ public class UsuarioController {
         return null;
     }
 
-    @PostMapping("/ativaInativa")
+    @PostMapping("/ativa-inativa")
     public ResponseDTO ativaInativa(@RequestBody String uuid) {
         String status = usuarioService.ativaInativa(uuid);
         if ("OK".equals(status)) {
