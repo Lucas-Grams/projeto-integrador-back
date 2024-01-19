@@ -1,21 +1,17 @@
 package br.com.pnipapi.controller;
-
 import br.com.pnipapi.dto.EmpresaUsuarioDTO;
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.model.Empresa;
-import br.com.pnipapi.model.EmpresaUsuario;
 import br.com.pnipapi.service.EmpresaService;
 import br.com.pnipapi.service.EmpresaUsuarioService;
 import br.com.pnipapi.service.UsuarioService;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/empresa")
 public class EmpresaController {
+
     private EmpresaService empresaService;
     private EmpresaUsuarioService empresaUsuarioService;
     private UsuarioService usuarioService;
@@ -26,17 +22,17 @@ public class EmpresaController {
         this.usuarioService = usuarioService;
     }
 
-    @GetMapping("/findAll")
+    @GetMapping("/find-all")
         public List<Empresa> findAll(){
             return empresaService.findAll();
     }
 
-    @GetMapping("/findEmpresaByUuid/{uuid}")
+    @GetMapping("/find-empresa-by-uuid/{uuid}")
     public Empresa findEmpresaByUuid(@PathVariable String uuid){
         return empresaService.findEmpresaByUuid(uuid);
     }
 
-    @PostMapping("/ativaInativa")
+    @PostMapping("/ativa-inativa")
     public ResponseDTO ativaInativa(@RequestBody String uuid){
         String status = empresaService.ativaInativa(uuid);
         if ("OK".equals(status)) {
@@ -58,7 +54,7 @@ public class EmpresaController {
         return null;
     }
 
-    @GetMapping("/findUsuariosByUuidEmpresa/{uuid}")
+    @GetMapping("/find-usuarios-by-uuid-empresa/{uuid}")
     public List<EmpresaUsuarioDTO> findUsuariosByUuidEmpresa(@PathVariable String uuid){
         return this.empresaUsuarioService.findUsuariosByUuidEmpresa(uuid);
     }

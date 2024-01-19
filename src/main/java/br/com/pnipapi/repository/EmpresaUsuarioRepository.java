@@ -1,13 +1,9 @@
 package br.com.pnipapi.repository;
-
-import br.com.pnipapi.dto.EmpresaUsuarioDTO;
-import br.com.pnipapi.model.Empresa;
 import br.com.pnipapi.model.EmpresaUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
 @Repository

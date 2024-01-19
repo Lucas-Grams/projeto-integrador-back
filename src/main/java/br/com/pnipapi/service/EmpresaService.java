@@ -1,22 +1,15 @@
 package br.com.pnipapi.service;
-
 import br.com.pnipapi.dto.EmpresaUsuarioDTO;
-import br.com.pnipapi.dto.ResponseDTO;
-import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.Empresa;
-import br.com.pnipapi.model.EmpresaUsuario;
-import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.repository.EmpresaRepository;
-import br.com.pnipapi.repository.EmpresaUsuarioRepository;
-import br.com.pnipapi.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class EmpresaService {
+
     private EmpresaRepository empresaRepository;
     private EmpresaUsuarioService empresaUsuarioService;
     private UsuarioService usuarioService;

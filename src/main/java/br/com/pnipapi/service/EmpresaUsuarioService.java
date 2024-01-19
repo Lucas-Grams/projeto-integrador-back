@@ -1,7 +1,5 @@
 package br.com.pnipapi.service;
-
 import br.com.pnipapi.dto.EmpresaUsuarioDTO;
-import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.EmpresaRepository;
 import br.com.pnipapi.repository.EmpresaUsuarioRepository;
@@ -10,7 +8,6 @@ import br.com.pnipapi.repository.UsuarioRepository;
 import br.com.pnipapi.utils.User;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -135,8 +132,6 @@ public class EmpresaUsuarioService {
     }
 
     public List<EmpresaUsuarioDTO> findUsuariosByUuidEmpresa(String uuid){
-
-//        return empresaUsuarioRepository.findAllByUuidEmpresa(uuid);
         UUID uuidObj = UUID.fromString(uuid);
         Empresa empresa = empresaRepository.findEmpresaByUuid(uuidObj);
         if (empresa == null) {
