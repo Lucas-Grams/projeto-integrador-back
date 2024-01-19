@@ -1,14 +1,11 @@
 package br.com.pnipapi.service;
-
 import br.com.pnipapi.dto.ResponseDTO;
-import br.com.pnipapi.dto.UnidadeFormDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -16,19 +13,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class UnidadeService {
+
+    UsuarioService usuarioService;
+
     UnidadeRepository unidadeRepository;
     EnderecoRepository enderecoRepository;
-    UsuarioService usuarioService;
     TipoUnidadeRepository tipoUnidadeRepository;
     UnidadeUsuarioRepository unidadeUsuarioRepository;
     PermissaoRepository permissaoRepository;
-
     UnidadeUsuarioService unidadeUsuarioService;
     public UnidadeService(UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository,
                           UsuarioService usuarioService, TipoUnidadeRepository tipoUnidadeRepository,
                           UnidadeUsuarioRepository unidadeUsuarioRepository,  PermissaoRepository permissaoRepository,
-                          UnidadeUsuarioService unidadeUsuarioService
-                          ) {
+                          UnidadeUsuarioService unidadeUsuarioService) {
         this.unidadeRepository = unidadeRepository;
         this.enderecoRepository = enderecoRepository;
         this.usuarioService = usuarioService;
@@ -66,7 +63,7 @@ public class UnidadeService {
             e.printStackTrace();
             return "ERROR";
         } catch (Exception e) {
-           e.printStackTrace();
+            e.printStackTrace();
             return "ERROR";
         }
     }
@@ -91,9 +88,11 @@ public class UnidadeService {
         unidadeRepository.save(unidade);
     }
 
+
     public Unidade findByUuid(String uuid){
         return this.unidadeRepository.findUnidadeByUuid(uuid);
     }
+
 
     public void validaVinculo(List<UnidadeUsuario> unidadeUsuarios, Long unidadeId){
         List<UnidadeUsuario> vinculosExistentes = new ArrayList<>();
@@ -106,5 +105,4 @@ public class UnidadeService {
     public ResponseDTO<List<TipoUnidade>> findAllTipos(){
         return ResponseDTO.ok(this.tipoUnidadeRepository.findAll());
     }
-
 }

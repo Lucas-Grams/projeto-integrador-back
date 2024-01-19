@@ -1,21 +1,17 @@
 package br.com.pnipapi.service;
-
-import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
 import br.com.pnipapi.utils.User;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static br.com.pnipapi.dto.ResponseDTO.ok;
-
 @Service
 public class UnidadeUsuarioService{
+
     UnidadeUsuarioRepository unidadeUsuarioRepository;
     UsuarioRepository usuarioRepository;
     PermissaoRepository permissaoRepository;
@@ -32,7 +28,6 @@ public class UnidadeUsuarioService{
         this.enderecoRepository = enderecoRepository;
     }
 
-
         public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(String uuid) {
             UUID uuidObj = UUID.fromString(uuid);
             Usuario user = usuarioRepository.findAllByUuid(uuidObj).orElse(null);
@@ -46,7 +41,6 @@ public class UnidadeUsuarioService{
 
             vinculos.forEach((vin) -> {
                 if (!vinculosRetorno.contains(vin)) {
-                    // Crie uma nova instância e adicione à lista de retorno
                     UnidadeUsuarioDTO novaInstancia = new UnidadeUsuarioDTO();
                     novaInstancia.setId(vin.getId());
                     novaInstancia.setUnidade(vin.getUnidade());
@@ -55,7 +49,6 @@ public class UnidadeUsuarioService{
                     novaInstancia.setAtivo(vin.isAtivo());
                     vinculosRetorno.add(novaInstancia);
                 } else {
-                    // Encontre a instância existente e adicione a permissão
                     UnidadeUsuarioDTO instanciaExistente = vinculosRetorno.stream()
                         .filter(existing -> existing.equals(vin))
                         .findFirst()
@@ -66,7 +59,6 @@ public class UnidadeUsuarioService{
                     }
                 }
             });
-
             return vinculosRetorno;
         }
 
@@ -80,7 +72,6 @@ public class UnidadeUsuarioService{
 
             vinculos.forEach((vin) -> {
                 if (!vinculosRetorno.contains(vin)) {
-                    // Crie uma nova instância e adicione à lista de retorno
                     UnidadeUsuarioDTO novaInstancia = new UnidadeUsuarioDTO();
                     novaInstancia.setId(vin.getId());
                     novaInstancia.setUnidade(vin.getUnidade());
@@ -89,7 +80,6 @@ public class UnidadeUsuarioService{
                     novaInstancia.setAtivo(vin.isAtivo());
                     vinculosRetorno.add(novaInstancia);
                 } else {
-                    // Encontre a instância existente e adicione a permissão
                     UnidadeUsuarioDTO instanciaExistente = vinculosRetorno.stream()
                         .filter(existing -> existing.equals(vin))
                         .findFirst()
@@ -100,38 +90,35 @@ public class UnidadeUsuarioService{
                     }
                 }
             });
-
             return vinculosRetorno;
         }
 
     @Transactional
-    public ResponseDTO saveUnidadeUsuario(List<UnidadeUsuarioDTO> unidadeUsuarios) {
+    public String saveUnidadeUsuario(List<UnidadeUsuarioDTO> unidadeUsuarios) {
         Usuario usuario = new Usuario();
         if (unidadeUsuarios.isEmpty()) {
-            return ResponseDTO.err("Erro ao cadastrar usuário");
+            return "ERROR";
         }
-
         List<UnidadeUsuario> unidadeUsuarioSalvar = new ArrayList<>();
-
         for (UnidadeUsuarioDTO uni : unidadeUsuarios) {
             if(uni.getId() == null) {
-                Unidade unidade = unidadeRepository.getById(uni.getUnidade().getId());
+                Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
 
                 if (usuario.getId() == null) {
                     usuario = saveOrUpdateUsuario(uni.getUsuario());
                 }
-                unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidade, usuario, uni.getPermissao(), true));
+                unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidadeSalvar, usuario, uni.getPermissao(), true));
             }else{
                 Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
                 usuario = saveOrUpdateUsuario(uni.getUsuario());
                 unidadeUsuarioSalvar.addAll(createUnidadeUsuarioListAtualiza(unidadeSalvar, usuario, uni.getPermissao(),uni.isAtivo()));
             }
         }
-
         unidadeUsuarioRepository.saveAllAndFlush(unidadeUsuarioSalvar);
         this.validaPermissoes(unidadeUsuarioSalvar);
-        return ResponseDTO.ok("Usuário cadastrado com sucesso");
+        return "OK";
     }
+
 
     @Transactional
     public String saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
@@ -162,7 +149,7 @@ public class UnidadeUsuarioService{
                             usuario = usuarioRepository.findUsuarioByCpf(uni.getUsuario().getCpf()).get();
                         }
                     }else{
-                        usuario = usuarioRepository.findUsuarioById(uni.getUsuario().getId());
+                        usuario = usuarioRepository.findUsuarioById(uni.getUsuario().getId()).get();
                     }
                     unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidade, usuario, uni.getPermissao(), true));
                 }else{
@@ -196,7 +183,7 @@ public class UnidadeUsuarioService{
             .map(UnidadeUsuario::getPermissao)
             .collect(Collectors.toList());
         permissoesUnicas.forEach((perm)->{
-            if (usuarioRepository.countPermissaoByUsuarioId(user.getId(), perm.getId()) == 0) {
+            if (usuarioRepository.countPermissaoByIdUsuarioIdPermissao(user.getId(), perm.getId()) == 0) {
                 usuarioRepository.savePermissao(user.getId(), perm.getId());
             }
         });
@@ -236,9 +223,4 @@ public class UnidadeUsuarioService{
             })
             .collect(Collectors.toList());
     }
-
-
-
-
-
 }
