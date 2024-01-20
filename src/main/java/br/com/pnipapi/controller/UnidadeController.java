@@ -1,11 +1,13 @@
 package br.com.pnipapi.controller;
 
 import br.com.pnipapi.dto.ResponseDTO;
+import br.com.pnipapi.dto.UnidadeFormDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.TipoUnidade;
 import br.com.pnipapi.model.Unidade;
 import br.com.pnipapi.service.UnidadeService;
 import br.com.pnipapi.service.UnidadeUsuarioService;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,23 +15,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/unidade")
 public class UnidadeController {
-
     UnidadeService unidadeService;
     UnidadeUsuarioService unidadeUsuarioService;
 
-    public UnidadeController(UnidadeService unidadeService, UnidadeUsuarioService unidadeUsuarioService) {
+    public UnidadeController(UnidadeService unidadeService, UnidadeUsuarioService unidadeUsuarioService)
+    {
         this.unidadeService = unidadeService;
         this.unidadeUsuarioService = unidadeUsuarioService;
     }
 
     @PostMapping("/salvar")
-    public ResponseDTO save(@RequestBody List<UnidadeUsuarioDTO> unidadeUsuarios) {
+    public ResponseDTO save(@RequestBody List<UnidadeUsuarioDTO> unidadeUsuarios){
         String status = unidadeService.saveUnidadeUsuario(unidadeUsuarios);
-        if ("OK".equals(status)) {
+        if("OK".equals(status)) {
             return ResponseDTO.ok("Unidade cadastrada com sucesso!");
         } else if ("ERROR".equals(status)) {
             return ResponseDTO.err("Houve um problema no servidor, tente mais tarde.");
-        } else {
+        }else {
             return null;
         }
     }

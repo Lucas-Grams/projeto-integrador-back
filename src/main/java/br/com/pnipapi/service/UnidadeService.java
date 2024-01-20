@@ -1,6 +1,7 @@
 package br.com.pnipapi.service;
 
 import br.com.pnipapi.dto.ResponseDTO;
+import br.com.pnipapi.dto.UnidadeFormDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
@@ -15,10 +16,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class UnidadeService {
-
-    UsuarioService usuarioService;
     UnidadeRepository unidadeRepository;
     EnderecoRepository enderecoRepository;
+    UsuarioService usuarioService;
     TipoUnidadeRepository tipoUnidadeRepository;
     UnidadeUsuarioRepository unidadeUsuarioRepository;
     PermissaoRepository permissaoRepository;
@@ -54,8 +54,7 @@ public class UnidadeService {
                 uniUser = unidadeUsuarios.get(0);
                 unidadeSalva = uniUser.getUnidade();
                 if (unidadeSalva.getUnidadeGerenciadora().getId() > 0) {
-                    unidadeSalva.setUnidadeGerenciadora(
-                        unidadeRepository.getById(unidadeSalva.getUnidadeGerenciadora().getId()));
+                    unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidadeSalva.getUnidadeGerenciadora().getId()));
                 }
                 unidadeSalva = unidadeRepository.save(unidadeSalva);
                 return "OK";
@@ -64,33 +63,34 @@ public class UnidadeService {
             }
         } catch (DataIntegrityViolationException e) {
             e.printStackTrace();
-            return e.getCause().getMessage();
+            return "ERROR";
         } catch (Exception e) {
             e.printStackTrace();
-            return e.getCause().getMessage();
+            return "ERROR";
         }
     }
+
 
     public List<Unidade> findAll() {
         return unidadeRepository.findAll().parallelStream().filter(Objects::nonNull).toList();
     }
 
-    public List<Unidade> getGerenciadoras(String tipo) {
+    public List<Unidade> getGerenciadoras(String tipo){
         return unidadeRepository.findUnidadesByTipo(tipo);
     }
 
     @Transactional
-    public void inativa(String uuid) {
+    public void inativa(String uuid){
         Unidade unidade = this.unidadeRepository.findUnidadeByUuid(uuid);
-        unidade.setUsuarios(this.usuarioService.findRepresentantes(unidade.getId()));
-        if (!unidade.getUsuarios().isEmpty()) {
+        unidade.setUsuarios(this.usuarioService.findUsuariosUnidade(uuid));
+        if(!unidade.getUsuarios().isEmpty()) {
             unidadeRepository.updateUsuariosByIdUnidade(unidade.getId(), unidade.isAtivo() ? false : true);
         }
         unidade.setAtivo(unidade.isAtivo() ? false : true);
         unidadeRepository.save(unidade);
     }
 
-    public Unidade findByUuid(String uuid) {
+    public Unidade findByUuid(String uuid){
         return this.unidadeRepository.findUnidadeByUuid(uuid);
     }
 
@@ -105,4 +105,5 @@ public class UnidadeService {
     public ResponseDTO<List<TipoUnidade>> findAllTipos() {
         return ResponseDTO.ok(this.tipoUnidadeRepository.findAll());
     }
+
 }

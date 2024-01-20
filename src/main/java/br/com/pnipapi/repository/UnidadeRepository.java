@@ -16,9 +16,11 @@ public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
         "   WHERE u.tipo = :tipo AND ativo = true", nativeQuery = true)
     List<Unidade> findUnidadesByTipo(@Param("tipo") String tipo);
 
+
     @Query(value = "SELECT * FROM unidade u " +
         "  WHERE u.uuid = CAST(:uuid AS UUID)", nativeQuery = true)
     Unidade findUnidadeByUuid(@Param("uuid") String uuid);
+
 
     @Modifying
     @Query(value="UPDATE unidade_usuario SET ativo =:ativo  WHERE id_unidade =:idUnidade", nativeQuery = true)

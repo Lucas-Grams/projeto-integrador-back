@@ -39,17 +39,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     @Query(value = """
     SELECT DISTINCT u.id, u.* FROM usuario u 
     JOIN unidade_usuario  uu ON u.id = uu.id_usuario  
-    """, nativeQuery = true)
+""", nativeQuery = true)
     List<Usuario> findUsuariosDip();
 
-    @Query(value = """
-    SELECT p.*
-    FROM permissao p
-             JOIN unidade_usuario uu ON p.id = uu.id_permissao
-             JOIN unidade un ON uu.id_unidade = un.id
-    WHERE uu.id_usuario = :id AND un.id = :idUnidade;
+    @Query(value= """
+    SELECT DISTINCT u.id, u.* FROM usuario u 
+    JOIN empresa_usuario eu ON u.id = eu.id_usuario 
 """, nativeQuery = true)
-    List<Permissao> findPermissoesByUsuarioId(@Param("id") Long id, @Param("idUnidade") Long idUnidade);
+    List<Usuario> findUsuariosEmpresas();
 
     @Modifying
     @Query(value="""
@@ -63,9 +60,29 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
 """, nativeQuery = true)
     int countPermissaoByIdUsuarioIdPermissao(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
 
+    Optional<Usuario> findById(@Param("id") Long id);
+
+    @Query(value = """
+    SELECT p.*
+    FROM permissao p
+             JOIN unidade_usuario uu ON p.id = uu.id_permissao
+             JOIN unidade un ON uu.id_unidade = un.id
+    WHERE uu.id_usuario = :id AND un.id = :id_unidade;
+""", nativeQuery = true)
+    List<Permissao> findPermissoesByUsuarioId(@Param("id") Long id, @Param("id_unidade") Long id_unidade);
+
+
+    @Query(value = """
+    SELECT COUNT(*) FROM usuario_permissao up
+    WHERE up.id_usuario = :idUsuario AND up.id_permissao = :idPermissao
+""", nativeQuery = true)
+    int countPermissaoByUsuarioId(@Param("id_usuario") Long idUsuario, @Param("id_permissao") Long idPermissao);
+
+
     @Query(value = """
     SELECT COUNT(*) FROM usuario u
     WHERE u.cpf = :cpf
 """, nativeQuery = true)
     int countUsuarioByCpf(@Param("cpf") String cpf);
+
 }

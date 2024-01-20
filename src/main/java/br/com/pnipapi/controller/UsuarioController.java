@@ -59,6 +59,9 @@ public class UsuarioController {
         return null;
     }
 
+
+
+
     @PostMapping("/ativa-inativa")
     public ResponseDTO ativaInativa(@RequestBody String uuid) {
         String status = usuarioService.ativaInativa(uuid);

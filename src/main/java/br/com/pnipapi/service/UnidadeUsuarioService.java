@@ -1,5 +1,6 @@
 package br.com.pnipapi.service;
 
+import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
@@ -30,6 +31,7 @@ public class UnidadeUsuarioService {
         this.unidadeRepository = unidadeRepository;
         this.enderecoRepository = enderecoRepository;
     }
+
 
     public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(String uuid) {
         UUID uuidObj = UUID.fromString(uuid);
@@ -113,66 +115,66 @@ public class UnidadeUsuarioService {
                     usuario = saveOrUpdateUsuario(uni.getUsuario());
                 }
                 unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidadeSalvar, usuario, uni.getPermissao(), true));
-            } else {
+            }else{
                 Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
                 usuario = saveOrUpdateUsuario(uni.getUsuario());
                 unidadeUsuarioSalvar.addAll(
                     createUnidadeUsuarioListAtualiza(unidadeSalvar, usuario, uni.getPermissao(), uni.isAtivo()));
             }
         }
+
         unidadeUsuarioRepository.saveAllAndFlush(unidadeUsuarioSalvar);
         this.validaPermissoes(unidadeUsuarioSalvar);
         return "OK";
     }
 
-
     @Transactional
-    public String saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios) {
-        try {
+    public String saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
+        try{
+            Unidade unidade = new Unidade();
             if (unidadeUsuarios.isEmpty()) {
                 return "ERROR";
             }
 
             List<UnidadeUsuario> unidadeUsuarioSalvar = new ArrayList<>();
-            Unidade unidade = new Unidade();
+
             for (UnidadeUsuarioDTO uni : unidadeUsuarios) {
-                Unidade unidadeSalvar = uni.getUnidade().toUnidade(uni.getUnidade());
+                unidade = uni.getUnidade();
                 Usuario usuario = new Usuario();
-                if (uni.getId() == null) {
-                    if (uni.getUnidade().getId() == null) {
-                        if (unidadeRepository.countUnidadeByNomeAndAtivo(uni.getUnidade().getNome(), true) <= 0) {
-                            unidade = unidadeRepository.save(unidadeSalvar);
-                        } else {
-                            unidade = unidadeRepository.findByNome(uni.getUnidade().getNome());
-                        }
-                    } else {
-                        unidade = unidadeRepository.save(unidadeSalvar);
-                    }
-                    if (uni.getUsuario().getId() == null) {
-                        if (usuarioRepository.countUsuarioByCpf(uni.getUsuario().getCpf()) == 0) {
+                if(uni.getId() == null) {
+                    if(uni.getUsuario().getId() == null){
+                        if(usuarioRepository.countUsuarioByCpf(uni.getUsuario().getCpf()) == 0){
                             usuario = this.saveOrUpdateUsuario(uni.getUsuario());
-                        } else {
+                        }else{
                             usuario = usuarioRepository.findUsuarioByCpf(uni.getUsuario().getCpf()).get();
                         }
-                    } else {
+                    }else{
                         usuario = usuarioRepository.findUsuarioById(uni.getUsuario().getId()).get();
                     }
+
+
+                    if (uni.getId() == null) {
+                        unidade = unidadeRepository.save(unidade.toUnidade(unidade));
+                    }
+                    if(uni.getUnidade().getEndereco() != null) {
+                        Endereco endereco = enderecoRepository.save(uni.getUnidade().getEndereco());
+                        unidade.setEndereco(endereco);
+                    }
                     unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidade, usuario, uni.getPermissao(), true));
-                } else {
+                }else{
                     usuario = usuarioRepository.getById(uni.getUsuario().getId());
                     unidade = unidadeRepository.save(uni.getUnidade());
                     Endereco endereco = enderecoRepository.save(uni.getUnidade().getEndereco());
                     unidade.setEndereco(endereco);
-                    unidadeUsuarioSalvar.addAll(
-                        createUnidadeUsuarioListAtualiza(unidade, usuario, uni.getPermissao(), uni.isAtivo()));
+                    unidadeUsuarioSalvar.addAll(createUnidadeUsuarioListAtualiza(unidade, usuario, uni.getPermissao(),uni.isAtivo()));
                 }
             }
             unidadeUsuarioRepository.saveAllAndFlush(unidadeUsuarioSalvar);
             this.validaPermissoes(unidadeUsuarioSalvar);
             return "OK";
-        } catch (Exception e) {
+        }catch (Exception e){
             e.printStackTrace();
-            return e.getCause().getMessage();
+            return "ERROR";
         }
     }
 

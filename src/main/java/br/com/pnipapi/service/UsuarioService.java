@@ -40,6 +40,7 @@ public class UsuarioService {
             usuario.setSenha(senha);
         }
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
+
         return ResponseDTO.ok("Usuário salvo com sucesso", UsuarioInfo.builder()
             .cpf(usuarioSalvo.getCpf())
             .id(usuarioSalvo.getId())
@@ -95,41 +96,38 @@ public class UsuarioService {
 
     public Optional<Usuario> findById(Long id) {return this.usuarioRepository.findById(id);}
 
-    public List<Usuario> findUsuariosDip() {
+    public List<Usuario> findUsuariosDip(){
         return usuarioRepository.findUsuariosDip();
     }
 
+    public List<Usuario> findUsuariosEmpresas(){return usuarioRepository.findUsuariosEmpresas();}
 
-    List<Usuario> findRepresentantes(long id_unidade) {
-        return this.usuarioRepository.findRepresentantes(id_unidade);
-    }
-
-    public String saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios) {
-        try {
+    public String saveUsuarioUnidade(List<UnidadeUsuarioDTO> unidadeUsuarios){
+        try{
             AtomicBoolean temUnidade = new AtomicBoolean(true);
-            unidadeUsuarios.forEach((uni) -> {
-                if (!(uni.getUnidade().getNome().length() > 2)) {
+            unidadeUsuarios.forEach((uni)->{
+                if(!(uni.getUnidade().getNome().length()>2)){
                     temUnidade.set(false);
                 }
             });
-            if (!temUnidade.get()) {
+            if(!temUnidade.get()){
                 Usuario user = new Usuario();
                 UnidadeUsuarioDTO uniUser = new UnidadeUsuarioDTO();
                 uniUser = unidadeUsuarios.get(0);
                 user = uniUser.getUsuario();
                 user = this.save(user);
                 return "OK";
-            } else {
+            }else{
                 return this.unidadeUsuarioService.saveUnidadeUsuario(unidadeUsuarios);
             }
-        } catch (Exception e) {
+        }catch (Exception e){
             e.printStackTrace();
-            return e.getCause().getMessage();
+            return "ERROR";
         }
     }
 
-    public String ativaInativa(String uuid) {
-        try {
+    public String ativaInativa(String uuid){
+        try{
             Usuario user = new Usuario();
             UUID uuidObj = UUID.fromString(uuid);
             user = usuarioRepository.findAllByUuid(uuidObj).get();
@@ -139,22 +137,24 @@ public class UsuarioService {
                 user.setAtivo(false);
             }
             user = usuarioRepository.save(user);
-            if (user != null) {
+            if(user != null){
                 return "OK";
 
-            } else {
+            }else{
                 return "ERROR";
             }
-        } catch (Exception e) {
+        }catch (Exception e){
             e.printStackTrace();
-            return e.getCause().getMessage();
+            return "ERROR";
         }
     }
-
     public List<Permissao> findPermissoesByUsuarioId(Long id, Long id_unidade) {
         return this.unidadeUsuarioRepository.findPermissoesByUsuarioId(id, id_unidade);
     }
 
 }
+
+
+
 
 
