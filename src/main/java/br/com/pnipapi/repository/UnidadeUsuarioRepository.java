@@ -1,11 +1,9 @@
 package br.com.pnipapi.repository;
-
 import br.com.pnipapi.model.Permissao;
 import br.com.pnipapi.model.UnidadeUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.util.List;
 
 public interface UnidadeUsuarioRepository extends JpaRepository<UnidadeUsuario, Long> {

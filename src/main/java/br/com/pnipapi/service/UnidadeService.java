@@ -1,5 +1,4 @@
 package br.com.pnipapi.service;
-
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.*;
@@ -7,7 +6,6 @@ import br.com.pnipapi.repository.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -55,7 +53,6 @@ public class UnidadeService {
                 if (unidadeSalva.getUnidadeGerenciadora().getId() > 0) {
                     unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidadeSalva.getUnidadeGerenciadora().getId()));
                 }
-                //unidadeSalva = unidadeSalva.toUnidade(unidadeSalva);
                 unidadeSalva = unidadeRepository.save(unidadeSalva);
                 return "OK";
             } else {
@@ -69,7 +66,6 @@ public class UnidadeService {
             return "ERROR";
         }
     }
-
 
     public List<Unidade> findAll() {
         return unidadeRepository.findAll().parallelStream().filter(Objects::nonNull).toList();

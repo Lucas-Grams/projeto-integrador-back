@@ -20,7 +20,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
         " WHERE un.uuid = cast(:uuid as uuid)", nativeQuery = true)
     List<Usuario> findUsuariosByUuidUnidade(@Param("uuid") String uuid);
 
-
     @Query(value = "SELECT u.*, p.* FROM usuario u " +
         " JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
         " JOIN unidade un ON un.id = uus.id_unidade " +
@@ -77,5 +76,4 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
             WHERE u.cpf = :cpf
         """, nativeQuery = true)
     int countUsuarioByCpf(@Param("cpf") String cpf);
-
 }

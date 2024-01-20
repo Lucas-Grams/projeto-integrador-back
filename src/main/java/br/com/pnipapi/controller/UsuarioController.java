@@ -45,7 +45,7 @@ public class UsuarioController {
     @GetMapping("/find-usuarios-empresas")
     public List<Usuario> findUsuariosEmporesas(){return usuarioService.findUsuariosEmpresas();}
 
-    @GetMapping("/find-unidadesby-usuario-uuid/{uuid}")
+    @GetMapping("/find-unidades-by-usuario-uuid/{uuid}")
     public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(
         @PathVariable String uuid) {return unidadeUsuarioService.findUnidadesByUsuarioUuid(uuid);}
 

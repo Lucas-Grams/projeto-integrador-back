@@ -31,7 +31,7 @@ public class EmpresaService {
             UUID uuidObj = UUID.fromString(uuid);
             empresa = empresaRepository.findEmpresaByUuid(uuidObj);
             if(empresa != null){
-
+                return null;
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -52,7 +52,6 @@ public class EmpresaService {
             empresa = empresaRepository.save(empresa);
             if(empresa != null){
                 return "OK";
-
             }else{
                 return "ERROR";
             }

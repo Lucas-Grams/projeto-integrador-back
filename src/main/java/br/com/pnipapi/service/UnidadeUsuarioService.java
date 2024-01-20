@@ -1,6 +1,4 @@
 package br.com.pnipapi.service;
-
-import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
@@ -35,7 +33,6 @@ public class UnidadeUsuarioService {
     public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(String uuid) {
         UUID uuidObj = UUID.fromString(uuid);
         Usuario user = usuarioRepository.findAllByUuid(uuidObj).orElse(null);
-
         if (user == null) {
             return new ArrayList<>();
         }
@@ -164,7 +161,6 @@ public class UnidadeUsuarioService {
                         usuario = usuarioRepository.findUsuarioById(uni.getUsuario().getId()).get();
                     }
 
-
                     if (uni.getId() == null) {
                         unidade = unidadeRepository.save(unidade.toUnidade(unidade));
                     }
@@ -204,7 +200,7 @@ public class UnidadeUsuarioService {
             .map(UnidadeUsuario::getPermissao)
             .collect(Collectors.toList());
         permissoesUnicas.forEach((perm)->{
-            if (usuarioRepository.countPermissaoByIdUsuarioIdPermissao(user.getId(), perm.getId()) == 0) {
+            if (usuarioRepository.countPermissaoByUsuarioIdPermissaoId(user.getId(), perm.getId()) == 0) {
                 usuarioRepository.savePermissao(user.getId(), perm.getId());
             }
         });
