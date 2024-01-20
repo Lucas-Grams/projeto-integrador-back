@@ -1,32 +1,63 @@
 package br.com.pnipapi.repository;
-
 import br.com.pnipapi.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
 
-    @Query(value = "SELECT u.* FROM usuario u " +
-        "JOIN unidade_usuario uu ON uu.id_usuario = u.id " +
-        "JOIN unidade un ON un.id = uu.id_unidade " +
-        "AND un.uuid = CAST(:uuid AS UUID) AND uu.ativo = true", nativeQuery = true)
-    List<Usuario> findRepresentantesUnidade(@Param("uuid") String uuid);
+    @Query(value = "SELECT u.*, p.* FROM usuario u " +
+        " JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
+        " JOIN unidade un ON un.id = uus.id_unidade " +
+        " JOIN public.permissao p on uus.id_permissao = p.id " +
+        " WHERE un.uuid = cast(:uuid as uuid)", nativeQuery = true)
+    List<Usuario> findUsuariosByUuidUnidade(@Param("uuid") String uuid);
 
-    @Query(value="SELECT u.* FROM usuario u " +
-        "JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
-        "JOIN unidade un ON un.id = uus.id_unidade " +
-        "WHERE un.id = :id_unidade ", nativeQuery = true)
-    List<Usuario> findRepresentantes(@Param("id_unidade") long id_unidade);
+    @Query(value="SELECT u.*, p.* FROM usuario u " +
+        " JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
+        " JOIN unidade un ON un.id = uus.id_unidade " +
+        " JOIN public.permissao p on uus.id_permissao = p.id " +
+        " WHERE un.id = :idUnidade", nativeQuery = true)
+    List<Usuario> findRepresentantes(@Param("idUnidade") long idUnidade);
 
     @Query(value="""
         SELECT u.* FROM usuario u
         WHERE u.cpf = :cpf """, nativeQuery = true)
     Optional<Usuario> findUsuarioByCpf(@Param("cpf") String cpf);
+
+    Optional<Usuario> findUsuarioById(@Param("id") Long id);
+
+    Optional<Usuario> findAllByUuid(@Param("uuid") UUID uuid);
+
+    @Query(value = """
+    SELECT DISTINCT u.id, u.* FROM usuario u 
+    JOIN unidade_usuario  uu ON u.id = uu.id_usuario  
+    """, nativeQuery = true)
+    List<Usuario> findUsuariosDip();
+
+    @Modifying
+    @Query(value="""
+    INSERT INTO usuario_permissao (id_usuario, id_permissao) VALUES(:idUsuario, :idPermissao)
+    """, nativeQuery = true)
+    void savePermissao(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
+
+    @Query(value = """
+    SELECT COUNT(*) FROM usuario_permissao up
+    WHERE up.id_usuario = :idUsuario AND up.id_permissao = :idPermissao
+    """, nativeQuery = true)
+    int countPermissaoByIdUsuarioIdPermissao(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
+
+
+    @Query(value = """
+    SELECT COUNT(*) FROM usuario u
+    WHERE u.cpf = :cpf
+    """, nativeQuery = true)
+    int countUsuarioByCpf(@Param("cpf") String cpf);
 
 }

@@ -31,5 +31,5 @@ public record UnidadeFormDTO(
    String latitude,
    @NotBlank(message = "Campo longitude é obrigatório.")
    String longitude,
-   Usuario usuarioRepresentante
+   List<Usuario> usuarios
 ) {}
