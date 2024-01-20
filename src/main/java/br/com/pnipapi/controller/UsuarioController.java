@@ -44,6 +44,9 @@ public class UsuarioController {
     @GetMapping("/find-usuarios-dip")
     public List<Usuario> findUsuariosDip() {return usuarioService.findUsuariosDip();}
 
+    @GetMapping("/find-usuarios-empresas")
+    public List<Usuario> findUsuariosEmporesas(){return usuarioService.findUsuariosEmpresas();}
+
     @GetMapping("/find-unidadesby-usuario-uuid/{uuid}")
     public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(
         @PathVariable String uuid) {return unidadeUsuarioService.findUnidadesByUsuarioUuid(uuid);}
@@ -58,9 +61,6 @@ public class UsuarioController {
         }
         return null;
     }
-
-
-
 
     @PostMapping("/ativa-inativa")
     public ResponseDTO ativaInativa(@RequestBody String uuid) {

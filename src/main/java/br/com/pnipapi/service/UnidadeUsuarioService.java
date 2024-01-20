@@ -192,7 +192,7 @@ public class UnidadeUsuarioService {
             .map(UnidadeUsuario::getPermissao)
             .collect(Collectors.toList());
         permissoesUnicas.forEach((perm) -> {
-            if (usuarioRepository.countPermissaoByIdUsuarioIdPermissao(user.getId(), perm.getId()) == 0) {
+            if (usuarioRepository.countPermissaoByUsuarioIdPermissaoId(user.getId(), perm.getId()) == 0) {
                 usuarioRepository.savePermissao(user.getId(), perm.getId());
             }
         });

@@ -1,12 +1,11 @@
 package br.com.pnipapi.repository;
-
+import br.com.pnipapi.model.Permissao;
 import br.com.pnipapi.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -57,19 +56,21 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     void savePermissao(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
 
     @Query(value = """
-            SELECT COUNT(*) FROM usuario_permissao up
-            WHERE up.id_usuario = :idUsuario AND up.id_permissao = :idPermissao
-        """, nativeQuery = true)
-    int countPermissaoByIdUsuarioIdPermissao(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
+    SELECT COUNT(*) FROM usuario_permissao up
+    WHERE up.id_usuario = :idUsuario AND up.id_permissao = :idPermissao
+""", nativeQuery = true)
+    int countPermissaoByUsuarioIdPermissaoId(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
 
     Optional<Usuario> findById(@Param("id") Long id);
 
     @Query(value = """
-            SELECT COUNT(*) FROM usuario_permissao up
-            WHERE up.id_usuario = :idUsuario AND up.id_permissao = :idPermissao
-        """, nativeQuery = true)
-    int countPermissaoByUsuarioId(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
-
+    SELECT p.*
+    FROM permissao p
+             JOIN unidade_usuario uu ON p.id = uu.id_permissao
+             JOIN unidade un ON uu.id_unidade = un.id
+    WHERE uu.id_usuario = :id AND un.id = :idUnidade;
+""", nativeQuery = true)
+    List<Permissao> findPermissoesByUsuarioId(@Param("id") Long id, @Param("idUnidade") Long idUnidade);
 
     @Query(value = """
             SELECT COUNT(*) FROM usuario u
