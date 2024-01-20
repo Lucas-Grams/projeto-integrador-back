@@ -22,13 +22,12 @@ public class UnidadeService {
     TipoUnidadeRepository tipoUnidadeRepository;
     UnidadeUsuarioRepository unidadeUsuarioRepository;
     PermissaoRepository permissaoRepository;
-
     UnidadeUsuarioService unidadeUsuarioService;
+
     public UnidadeService(UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository,
-                          UsuarioService usuarioService, TipoUnidadeRepository tipoUnidadeRepository,
-                          UnidadeUsuarioRepository unidadeUsuarioRepository,  PermissaoRepository permissaoRepository,
-                          UnidadeUsuarioService unidadeUsuarioService
-    ) {
+        UsuarioService usuarioService, TipoUnidadeRepository tipoUnidadeRepository,
+        UnidadeUsuarioRepository unidadeUsuarioRepository, PermissaoRepository permissaoRepository,
+        UnidadeUsuarioService unidadeUsuarioService) {
         this.unidadeRepository = unidadeRepository;
         this.enderecoRepository = enderecoRepository;
         this.usuarioService = usuarioService;
@@ -72,7 +71,7 @@ public class UnidadeService {
     }
 
 
-    public List<Unidade> findAll(){
+    public List<Unidade> findAll() {
         return unidadeRepository.findAll().parallelStream().filter(Objects::nonNull).toList();
     }
 
@@ -95,15 +94,15 @@ public class UnidadeService {
         return this.unidadeRepository.findUnidadeByUuid(uuid);
     }
 
-    public void validaVinculo(List<UnidadeUsuario> unidadeUsuarios, Long unidadeId){
+    public void validaVinculo(List<UnidadeUsuario> unidadeUsuarios, Long unidadeId) {
         List<UnidadeUsuario> vinculosExistentes = new ArrayList<>();
         vinculosExistentes = unidadeUsuarioRepository.findAllByUnidadeId(unidadeId);
-        vinculosExistentes.forEach((vinculos)->{
+        vinculosExistentes.forEach((vinculos) -> {
 
         });
     }
 
-    public ResponseDTO<List<TipoUnidade>> findAllTipos(){
+    public ResponseDTO<List<TipoUnidade>> findAllTipos() {
         return ResponseDTO.ok(this.tipoUnidadeRepository.findAll());
     }
 

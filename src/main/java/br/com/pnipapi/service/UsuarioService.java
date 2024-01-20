@@ -10,7 +10,6 @@ import br.com.pnipapi.repository.UnidadeUsuarioRepository;
 import br.com.pnipapi.repository.UsuarioRepository;
 import br.com.pnipapi.utils.User;
 import org.apache.logging.log4j.util.Strings;
-
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,7 +26,7 @@ public class UsuarioService {
     UnidadeUsuarioService unidadeUsuarioService;
 
     public UsuarioService(UsuarioRepository usuarioRepository, UnidadeUsuarioRepository unidadeUsuarioRepository,
-                          UnidadeRepository unidadeRepository, UnidadeUsuarioService unidadeUsuarioService) {
+        UnidadeRepository unidadeRepository, UnidadeUsuarioService unidadeUsuarioService) {
         this.usuarioRepository = usuarioRepository;
         this.unidadeUsuarioRepository = unidadeUsuarioRepository;
         this.unidadeRepository = unidadeRepository;
@@ -35,7 +34,8 @@ public class UsuarioService {
     }
 
     public ResponseDTO<UsuarioInfo> salvar(Usuario usuario) {
-        if (usuario.getSenha() != null && Strings.isNotBlank(usuario.getSenha()) && Strings.isNotEmpty(usuario.getSenha())) {
+        if (usuario.getSenha() != null && Strings.isNotBlank(usuario.getSenha()) && Strings.isNotEmpty(
+            usuario.getSenha())) {
             final String senha = User.generatePasswordBCrypt(usuario.getSenha());
             usuario.setSenha(senha);
         }
@@ -50,12 +50,12 @@ public class UsuarioService {
             .dataCadastro(usuarioSalvo.getDataCadastro()).build());
     }
 
-    public Usuario save(Usuario usuario){
-
-        if (usuario.getSenha() != null && Strings.isNotBlank(usuario.getSenha()) && Strings.isNotEmpty(usuario.getSenha())) {
+    public Usuario save(Usuario usuario) {
+        if (usuario.getSenha() != null && Strings.isNotBlank(usuario.getSenha()) && Strings.isNotEmpty(
+            usuario.getSenha())) {
             final String senha = User.generatePasswordBCrypt(usuario.getSenha());
             usuario.setSenha(senha);
-        }else{
+        } else {
             final String senha = User.generatePasswordBCrypt("teste001");
             usuario.setSenha(senha);
         }
@@ -79,13 +79,14 @@ public class UsuarioService {
         }).filter(Objects::nonNull).toList();
     }
 
-    public Usuario findUsuarioByUuid(String uuid){
+    public Usuario findUsuarioByUuid(String uuid) {
         UUID uuidObj = UUID.fromString(uuid);
         return usuarioRepository.findAllByUuid(uuidObj).get();
     }
 
     public List<Usuario> findUsuariosUnidade(String uuid) {
         List<Usuario> usuarios = usuarioRepository.findUsuariosByUuidUnidade(uuid);
+
         Map<Long, Usuario> usuarioMap = usuarios.stream()
             .collect(Collectors.toMap(Usuario::getId, Function.identity(), (existing, replacement) -> replacement));
         List<Usuario> usuariosUnicos = usuarioMap.values().stream().collect(Collectors.toList());
@@ -93,7 +94,7 @@ public class UsuarioService {
         return usuariosUnicos;
     }
 
-    public Optional<Usuario> findById(Long id){return this.usuarioRepository.findById(id);}
+    public Optional<Usuario> findById(Long id) {return this.usuarioRepository.findById(id);}
 
     public List<Usuario> findUsuariosDip(){
         return usuarioRepository.findUsuariosDip();
@@ -148,3 +149,11 @@ public class UsuarioService {
         }
     }
 }
+
+    public List<Permissao> findPermissoesByUsuarioId(Long id, Long id_unidade) {
+        return this.unidadeUsuarioRepository.findPermissoesByUsuarioId(id, id_unidade);
+    }
+
+}
+
+

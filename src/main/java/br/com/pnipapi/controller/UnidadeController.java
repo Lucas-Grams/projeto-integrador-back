@@ -36,29 +36,30 @@ public class UnidadeController {
         }
     }
 
-    @GetMapping("/findAll")
-    public List<Unidade> findAll(){
+    @GetMapping("/find-all")
+    public List<Unidade> findAll() {
         return unidadeService.findAll();
     }
 
-    @GetMapping("/getGerenciadoras/{tipo}")
+    @GetMapping("/get-gerenciadoras/{tipo}")
     public List<Unidade> getGerenciadoras(@PathVariable String tipo) {return unidadeService.getGerenciadoras(tipo);}
 
-    @PostMapping("inativarUnidade")
-    public void inativa(@RequestBody String uuid){
+    @PostMapping("inativar-unidade")
+    public void inativa(@RequestBody String uuid) {
         unidadeService.inativa(uuid);
     }
 
-    @GetMapping("findUnidadeByUuid/{uuid}")
-    public Unidade findUnidadeByUuid(@PathVariable String uuid){
+    @GetMapping("find-unidade-by-uuid/{uuid}")
+    public Unidade findUnidadeByUuid(@PathVariable String uuid) {
         return this.unidadeService.findByUuid(uuid);
     }
 
-    @GetMapping("/findAllTipos")
-    public ResponseDTO<List<TipoUnidade>> findAllTipos(){return this.unidadeService.findAllTipos();}
+    @GetMapping("/find-all-tipos")
+    public ResponseDTO<List<TipoUnidade>> findAllTipos() {return this.unidadeService.findAllTipos();}
 
-    @GetMapping("/findUsuariosByUnidadeUuid/{uuid}")
-    public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(@PathVariable String uuid){return unidadeUsuarioService.findUsuariosByUnidadeUuid(uuid);}
-
+    @GetMapping("/find-usuarios-by-unidade-uuid/{uuid}")
+    public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(@PathVariable String uuid) {
+        return unidadeUsuarioService.findUsuariosByUnidadeUuid(uuid);
+    }
 
 }

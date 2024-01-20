@@ -12,10 +12,9 @@ import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static br.com.pnipapi.dto.ResponseDTO.ok;
-
 @Service
-public class UnidadeUsuarioService{
+public class UnidadeUsuarioService {
+
     UnidadeUsuarioRepository unidadeUsuarioRepository;
     UsuarioRepository usuarioRepository;
     PermissaoRepository permissaoRepository;
@@ -23,8 +22,9 @@ public class UnidadeUsuarioService{
     EnderecoRepository enderecoRepository;
 
 
-    public UnidadeUsuarioService(UnidadeUsuarioRepository unidadeUsuarioRepository, UsuarioRepository usuarioRepository, PermissaoRepository permissaoRepository,
-                                 UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository){
+    public UnidadeUsuarioService(UnidadeUsuarioRepository unidadeUsuarioRepository, UsuarioRepository usuarioRepository,
+        PermissaoRepository permissaoRepository,
+        UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository) {
         this.unidadeUsuarioRepository = unidadeUsuarioRepository;
         this.usuarioRepository = usuarioRepository;
         this.permissaoRepository = permissaoRepository;
@@ -46,7 +46,6 @@ public class UnidadeUsuarioService{
 
         vinculos.forEach((vin) -> {
             if (!vinculosRetorno.contains(vin)) {
-                // Crie uma nova instância e adicione à lista de retorno
                 UnidadeUsuarioDTO novaInstancia = new UnidadeUsuarioDTO();
                 novaInstancia.setId(vin.getId());
                 novaInstancia.setUnidade(vin.getUnidade());
@@ -55,22 +54,21 @@ public class UnidadeUsuarioService{
                 novaInstancia.setAtivo(vin.isAtivo());
                 vinculosRetorno.add(novaInstancia);
             } else {
-                // Encontre a instância existente e adicione a permissão
                 UnidadeUsuarioDTO instanciaExistente = vinculosRetorno.stream()
                     .filter(existing -> existing.equals(vin))
                     .findFirst()
                     .orElse(null);
 
                 if (instanciaExistente != null) {
-                    Arrays.stream(new List[]{instanciaExistente.getPermissao()}).toList().add((List) vin.getPermissao());
+                    Arrays.stream(new List[]{instanciaExistente.getPermissao()}).toList()
+                        .add((List) vin.getPermissao());
                 }
             }
         });
-
         return vinculosRetorno;
     }
 
-    public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(String uuid){
+    public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(String uuid) {
         Unidade unidade = unidadeRepository.findUnidadeByUuid(uuid);
         if (unidade == null) {
             return new ArrayList<>();
@@ -80,7 +78,6 @@ public class UnidadeUsuarioService{
 
         vinculos.forEach((vin) -> {
             if (!vinculosRetorno.contains(vin)) {
-                // Crie uma nova instância e adicione à lista de retorno
                 UnidadeUsuarioDTO novaInstancia = new UnidadeUsuarioDTO();
                 novaInstancia.setId(vin.getId());
                 novaInstancia.setUnidade(vin.getUnidade());
@@ -89,18 +86,17 @@ public class UnidadeUsuarioService{
                 novaInstancia.setAtivo(vin.isAtivo());
                 vinculosRetorno.add(novaInstancia);
             } else {
-                // Encontre a instância existente e adicione a permissão
                 UnidadeUsuarioDTO instanciaExistente = vinculosRetorno.stream()
                     .filter(existing -> existing.equals(vin))
                     .findFirst()
                     .orElse(null);
 
                 if (instanciaExistente != null) {
-                    Arrays.stream(new List[]{instanciaExistente.getPermissao()}).toList().add((List) vin.getPermissao());
+                    Arrays.stream(new List[]{instanciaExistente.getPermissao()}).toList()
+                        .add((List) vin.getPermissao());
                 }
             }
         });
-
         return vinculosRetorno;
     }
 
@@ -110,21 +106,20 @@ public class UnidadeUsuarioService{
         if (unidadeUsuarios.isEmpty()) {
             return "ERROR";
         }
-
         List<UnidadeUsuario> unidadeUsuarioSalvar = new ArrayList<>();
-
         for (UnidadeUsuarioDTO uni : unidadeUsuarios) {
-            if(uni.getId() == null) {
-                Unidade unidade = unidadeRepository.getById(uni.getUnidade().getId());
+            if (uni.getId() == null) {
+                Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
 
                 if (usuario.getId() == null) {
                     usuario = saveOrUpdateUsuario(uni.getUsuario());
                 }
-                unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidade, usuario, uni.getPermissao(), true));
+                unidadeUsuarioSalvar.addAll(createUnidadeUsuarioList(unidadeSalvar, usuario, uni.getPermissao(), true));
             }else{
                 Unidade unidadeSalvar = unidadeRepository.getById(uni.getUnidade().getId());
                 usuario = saveOrUpdateUsuario(uni.getUsuario());
-                unidadeUsuarioSalvar.addAll(createUnidadeUsuarioListAtualiza(unidadeSalvar, usuario, uni.getPermissao(),uni.isAtivo()));
+                unidadeUsuarioSalvar.addAll(
+                    createUnidadeUsuarioListAtualiza(unidadeSalvar, usuario, uni.getPermissao(), uni.isAtivo()));
             }
         }
 
@@ -196,8 +191,8 @@ public class UnidadeUsuarioService{
         List<Permissao> permissoesUnicas = unidadeUsuarios.stream()
             .map(UnidadeUsuario::getPermissao)
             .collect(Collectors.toList());
-        permissoesUnicas.forEach((perm)->{
-            if (usuarioRepository.countPermissaoByUsuarioId(user.getId(), perm.getId()) == 0) {
+        permissoesUnicas.forEach((perm) -> {
+            if (usuarioRepository.countPermissaoByIdUsuarioIdPermissao(user.getId(), perm.getId()) == 0) {
                 usuarioRepository.savePermissao(user.getId(), perm.getId());
             }
         });
@@ -210,7 +205,8 @@ public class UnidadeUsuarioService{
         return usuarioRepository.save(usuario);
     }
 
-    private List<UnidadeUsuario> createUnidadeUsuarioList(Unidade unidade, Usuario usuario, List<Permissao> permissoes, boolean ativo) {
+    private List<UnidadeUsuario> createUnidadeUsuarioList(Unidade unidade, Usuario usuario, List<Permissao> permissoes,
+        boolean ativo) {
         return permissoes.stream()
             .map(permissao -> {
                 UnidadeUsuario uniUsu = new UnidadeUsuario();
@@ -223,12 +219,14 @@ public class UnidadeUsuarioService{
             .collect(Collectors.toList());
     }
 
-    private List<UnidadeUsuario> createUnidadeUsuarioListAtualiza(Unidade unidade, Usuario usuario, List<Permissao> permissoes, boolean ativo) {
+    private List<UnidadeUsuario> createUnidadeUsuarioListAtualiza(Unidade unidade, Usuario usuario,
+        List<Permissao> permissoes, boolean ativo) {
         return permissoes.stream()
             .map(permissao -> {
                 UnidadeUsuario uniUsu = new UnidadeUsuario();
                 permissao = permissaoRepository.findPermissaoByName(permissao.getDescricao());
-                uniUsu.setId(unidadeUsuarioRepository.findIdByUsuarioIdPermissaoID(usuario.getId(), permissao.getId(), unidade.getId()));
+                uniUsu.setId(unidadeUsuarioRepository.findIdByUsuarioIdPermissaoID(usuario.getId(), permissao.getId(),
+                    unidade.getId()));
                 uniUsu.setUnidade(unidade);
                 uniUsu.setUsuario(usuario);
                 uniUsu.setPermissao(permissao);
@@ -237,9 +235,4 @@ public class UnidadeUsuarioService{
             })
             .collect(Collectors.toList());
     }
-
-
-
-
-
 }
