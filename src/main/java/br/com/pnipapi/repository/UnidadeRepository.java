@@ -1,10 +1,12 @@
 package br.com.pnipapi.repository;
+
 import br.com.pnipapi.model.Unidade;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,8 +23,8 @@ public interface UnidadeRepository extends JpaRepository<Unidade, Long> {
     Unidade findUnidadeByUuid(@Param("uuid") String uuid);
 
     @Modifying
-    @Query(value="UPDATE unidade_usuario SET ativo =:ativo  WHERE id_unidade =:idUnidade", nativeQuery = true)
-    void updateUsuariosByIdUnidade(long idUnidade, boolean  ativo);
+    @Query(value = "UPDATE unidade_usuario SET ativo =:ativo  WHERE id_unidade =:idUnidade", nativeQuery = true)
+    void updateUsuariosByIdUnidade(long idUnidade, boolean ativo);
 
     Long countUnidadeByNomeAndAtivo(@Param("nome") String nome, @Param("ativo") boolean ativo);
 

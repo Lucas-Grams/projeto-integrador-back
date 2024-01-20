@@ -37,7 +37,7 @@ public class Unidade {
     @Column(nullable = false)
     private String tipo;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(nullable = false, name = "id_endereco")
     private Endereco endereco;
 
@@ -46,7 +46,7 @@ public class Unidade {
     private Unidade unidadeGerenciadora;
 
     @Column(nullable = false)
-    private boolean ativo;
+    private boolean ativo = true;
 
     @Column(nullable = false)
     private UUID uuid = UUID.randomUUID();

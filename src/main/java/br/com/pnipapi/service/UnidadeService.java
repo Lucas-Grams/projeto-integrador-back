@@ -1,4 +1,5 @@
 package br.com.pnipapi.service;
+
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.*;
@@ -6,6 +7,7 @@ import br.com.pnipapi.repository.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -13,19 +15,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class UnidadeService {
-
-    UsuarioService usuarioService;
-
     UnidadeRepository unidadeRepository;
     EnderecoRepository enderecoRepository;
+    UsuarioService usuarioService;
     TipoUnidadeRepository tipoUnidadeRepository;
     UnidadeUsuarioRepository unidadeUsuarioRepository;
     PermissaoRepository permissaoRepository;
     UnidadeUsuarioService unidadeUsuarioService;
+
     public UnidadeService(UnidadeRepository unidadeRepository, EnderecoRepository enderecoRepository,
-                          UsuarioService usuarioService, TipoUnidadeRepository tipoUnidadeRepository,
-                          UnidadeUsuarioRepository unidadeUsuarioRepository,  PermissaoRepository permissaoRepository,
-                          UnidadeUsuarioService unidadeUsuarioService) {
+        UsuarioService usuarioService, TipoUnidadeRepository tipoUnidadeRepository,
+        UnidadeUsuarioRepository unidadeUsuarioRepository, PermissaoRepository permissaoRepository,
+        UnidadeUsuarioService unidadeUsuarioService) {
         this.unidadeRepository = unidadeRepository;
         this.enderecoRepository = enderecoRepository;
         this.usuarioService = usuarioService;
@@ -70,7 +71,7 @@ public class UnidadeService {
     }
 
 
-    public List<Unidade> findAll(){
+    public List<Unidade> findAll() {
         return unidadeRepository.findAll().parallelStream().filter(Objects::nonNull).toList();
     }
 
@@ -81,7 +82,7 @@ public class UnidadeService {
     @Transactional
     public void inativa(String uuid){
         Unidade unidade = this.unidadeRepository.findUnidadeByUuid(uuid);
-        unidade.setUsuarios(this.usuarioService.findRepresentantes(unidade.getId()));
+        unidade.setUsuarios(this.usuarioService.findUsuariosUnidade(uuid));
         if(!unidade.getUsuarios().isEmpty()) {
             unidadeRepository.updateUsuariosByIdUnidade(unidade.getId(), unidade.isAtivo() ? false : true);
         }
@@ -89,21 +90,20 @@ public class UnidadeService {
         unidadeRepository.save(unidade);
     }
 
-
     public Unidade findByUuid(String uuid){
         return this.unidadeRepository.findUnidadeByUuid(uuid);
     }
 
-
-    public void validaVinculo(List<UnidadeUsuario> unidadeUsuarios, Long unidadeId){
+    public void validaVinculo(List<UnidadeUsuario> unidadeUsuarios, Long unidadeId) {
         List<UnidadeUsuario> vinculosExistentes = new ArrayList<>();
         vinculosExistentes = unidadeUsuarioRepository.findAllByUnidadeId(unidadeId);
-        vinculosExistentes.forEach((vinculos)->{
+        vinculosExistentes.forEach((vinculos) -> {
 
         });
     }
 
-    public ResponseDTO<List<TipoUnidade>> findAllTipos(){
+    public ResponseDTO<List<TipoUnidade>> findAllTipos() {
         return ResponseDTO.ok(this.tipoUnidadeRepository.findAll());
     }
+
 }
