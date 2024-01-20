@@ -39,12 +39,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     @Query(value = """
     SELECT DISTINCT u.id, u.* FROM usuario u 
     JOIN unidade_usuario  uu ON u.id = uu.id_usuario  
-    """, nativeQuery = true)
-    List<Usuario> findUsuariosDip();
-
-    @Query(value = """
-    SELECT DISTINCT u.id, u.* FROM usuario u 
-    JOIN unidade_usuario  uu ON u.id = uu.id_usuario  
 """, nativeQuery = true)
     List<Usuario> findUsuariosDip();
 

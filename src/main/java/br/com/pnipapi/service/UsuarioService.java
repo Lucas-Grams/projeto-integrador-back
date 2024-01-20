@@ -148,12 +148,13 @@ public class UsuarioService {
             return "ERROR";
         }
     }
-}
-
     public List<Permissao> findPermissoesByUsuarioId(Long id, Long id_unidade) {
         return this.unidadeUsuarioRepository.findPermissoesByUsuarioId(id, id_unidade);
     }
 
 }
+
+
+
 
 
