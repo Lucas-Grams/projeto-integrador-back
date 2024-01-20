@@ -131,6 +131,9 @@ public class UnidadeUsuarioService{
             Unidade unidade = new Unidade();
             for (UnidadeUsuarioDTO uni : unidadeUsuarios) {
                 Unidade unidadeSalvar = uni.getUnidade().toUnidade(uni.getUnidade());
+                if (unidadeSalvar.getUnidadeGerenciadora().getId() > 0) {
+                    unidadeSalvar.setUnidadeGerenciadora(unidadeRepository.getById(unidadeSalvar.getUnidadeGerenciadora().getId()));
+                }
                 Usuario usuario = new Usuario();
                 if(uni.getId() == null) {
                     if(uni.getUnidade().getId() == null){
@@ -185,7 +188,6 @@ public class UnidadeUsuarioService{
             .collect(Collectors.toList());
         permissoesUnicas.forEach((perm)->{
             if (usuarioRepository.countPermissaoByIdUsuarioIdPermissao(user.getId(), perm.getId()) == 0) {
-                System.out.println(perm.toString());
                 usuarioRepository.savePermissao(user.getId(), perm.getId());
             }
         });

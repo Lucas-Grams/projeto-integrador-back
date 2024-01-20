@@ -56,6 +56,4 @@ public class UnidadeController {
 
     @GetMapping("/find-usuarios-by-unidade-uuid/{uuid}")
     public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(@PathVariable String uuid){return unidadeUsuarioService.findUsuariosByUnidadeUuid(uuid);}
-
-
 }

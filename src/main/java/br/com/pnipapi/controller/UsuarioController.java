@@ -40,7 +40,7 @@ public class UsuarioController {
     @GetMapping("/find-usuarios-dip")
     public List<Usuario> findUsuariosDip(){return usuarioService.findUsuariosDip();}
 
-    @GetMapping("/find-unidadesby-usuario-uuid/{uuid}")
+    @GetMapping("/find-unidades-by-usuario-uuid/{uuid}")
     public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(@PathVariable String uuid){return unidadeUsuarioService.findUnidadesByUsuarioUuid(uuid);}
 
     @PostMapping("/salvar-usuario")

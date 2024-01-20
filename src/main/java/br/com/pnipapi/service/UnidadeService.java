@@ -1,6 +1,5 @@
 package br.com.pnipapi.service;
 import br.com.pnipapi.dto.ResponseDTO;
-import br.com.pnipapi.dto.UnidadeFormDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
@@ -42,7 +41,7 @@ public class UnidadeService {
             Unidade unidadeSalva;
             AtomicBoolean temUsuario = new AtomicBoolean(true);
             unidadeUsuarios.forEach((uni) -> {
-                if (!(uni.getUsuario().getNome().length() > 2)) {
+                if (uni.getUsuario().getCpf() == null) {
                     temUsuario.set(false);
                 }
             });
@@ -51,10 +50,11 @@ public class UnidadeService {
                 unidadeSalva = new Unidade();
                 UnidadeUsuarioDTO uniUser = new UnidadeUsuarioDTO();
                 uniUser = unidadeUsuarios.get(0);
-                unidadeSalva = uniUser.getUnidade();
+                unidadeSalva = uniUser.getUnidade().toUnidade(uniUser.getUnidade());
                 if (unidadeSalva.getUnidadeGerenciadora().getId() > 0) {
                     unidadeSalva.setUnidadeGerenciadora(unidadeRepository.getById(unidadeSalva.getUnidadeGerenciadora().getId()));
                 }
+                //unidadeSalva = unidadeSalva.toUnidade(unidadeSalva);
                 unidadeSalva = unidadeRepository.save(unidadeSalva);
                 return "OK";
             } else {
