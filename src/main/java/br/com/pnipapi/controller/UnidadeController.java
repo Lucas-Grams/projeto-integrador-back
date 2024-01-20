@@ -1,20 +1,17 @@
 package br.com.pnipapi.controller;
-
 import br.com.pnipapi.dto.ResponseDTO;
-import br.com.pnipapi.dto.UnidadeFormDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.model.TipoUnidade;
 import br.com.pnipapi.model.Unidade;
 import br.com.pnipapi.service.UnidadeService;
 import br.com.pnipapi.service.UnidadeUsuarioService;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/unidade")
 public class UnidadeController {
+
     UnidadeService unidadeService;
     UnidadeUsuarioService unidadeUsuarioService;
 
@@ -58,8 +55,5 @@ public class UnidadeController {
     public ResponseDTO<List<TipoUnidade>> findAllTipos() {return this.unidadeService.findAllTipos();}
 
     @GetMapping("/find-usuarios-by-unidade-uuid/{uuid}")
-    public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(@PathVariable String uuid) {
-        return unidadeUsuarioService.findUsuariosByUnidadeUuid(uuid);
-    }
-
+    public List<UnidadeUsuarioDTO> findUsuariosByUnidadeUuid(@PathVariable String uuid){return unidadeUsuarioService.findUsuariosByUnidadeUuid(uuid);}
 }

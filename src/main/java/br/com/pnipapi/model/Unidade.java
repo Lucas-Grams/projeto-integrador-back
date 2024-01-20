@@ -73,6 +73,8 @@ public class Unidade {
         }
         unidadeNova.setNome(uni.getNome());
         unidadeNova.setTipo(uni.getTipo());
+        unidadeNova.setAtivo(true);
+        unidadeNova.setUnidadeGerenciadora(uni.getUnidadeGerenciadora());
         unidadeNova.setDataCadastro(Date.valueOf(LocalDate.now()));
 
         Endereco endereco = new Endereco();

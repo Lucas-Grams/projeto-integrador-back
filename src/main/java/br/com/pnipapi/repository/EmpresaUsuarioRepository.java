@@ -20,6 +20,5 @@ public interface EmpresaUsuarioRepository extends JpaRepository<EmpresaUsuario, 
 """, nativeQuery = true)
     List<EmpresaUsuario> findAllByUuidEmpresa(@Param("uuid") String uuid);
 
-
     List<EmpresaUsuario> findAllByEmpresaId(@Param("id") Long id);
 }

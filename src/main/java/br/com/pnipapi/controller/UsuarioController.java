@@ -1,5 +1,4 @@
 package br.com.pnipapi.controller;
-
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.dto.UsuarioInfo;
@@ -7,7 +6,6 @@ import br.com.pnipapi.model.Usuario;
 import br.com.pnipapi.service.UnidadeUsuarioService;
 import br.com.pnipapi.service.UsuarioService;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.Valid;
 import java.util.List;
 
@@ -47,7 +45,7 @@ public class UsuarioController {
     @GetMapping("/find-usuarios-empresas")
     public List<Usuario> findUsuariosEmporesas(){return usuarioService.findUsuariosEmpresas();}
 
-    @GetMapping("/find-unidadesby-usuario-uuid/{uuid}")
+    @GetMapping("/find-unidades-by-usuario-uuid/{uuid}")
     public List<UnidadeUsuarioDTO> findUnidadesByUsuarioUuid(
         @PathVariable String uuid) {return unidadeUsuarioService.findUnidadesByUsuarioUuid(uuid);}
 

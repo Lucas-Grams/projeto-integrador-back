@@ -1,5 +1,4 @@
 package br.com.pnipapi.service;
-
 import br.com.pnipapi.dto.ResponseDTO;
 import br.com.pnipapi.dto.UnidadeUsuarioDTO;
 import br.com.pnipapi.dto.UsuarioInfo;
@@ -11,7 +10,6 @@ import br.com.pnipapi.repository.UsuarioRepository;
 import br.com.pnipapi.utils.User;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
