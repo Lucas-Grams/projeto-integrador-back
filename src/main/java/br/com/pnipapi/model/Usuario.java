@@ -1,8 +1,6 @@
 package br.com.pnipapi.model;
-
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
-
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -61,7 +59,6 @@ public class Usuario {
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;
 
-
     @Transient
     @ManyToMany
     @JoinTable(name="usuario_permissao", schema = "public",
@@ -71,6 +68,5 @@ public class Usuario {
 
     @OneToOne
     @JoinColumn(name = "id_endereco")
-
     private Endereco endereco;
 }

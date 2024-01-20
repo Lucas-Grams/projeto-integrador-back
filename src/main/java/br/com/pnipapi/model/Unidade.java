@@ -88,5 +88,4 @@ public class Unidade {
         unidadeNova.setEndereco(endereco);
         return unidadeNova;
     }
-
 }

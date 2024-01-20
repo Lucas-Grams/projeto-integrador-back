@@ -1,10 +1,7 @@
 package br.com.pnipapi.model;
-
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import javax.persistence.*;
 
 @Data
@@ -13,6 +10,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TipoUnidade {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -23,5 +21,4 @@ public class TipoUnidade {
 
     @Column(nullable = false)
     private String tipo;
-
 }

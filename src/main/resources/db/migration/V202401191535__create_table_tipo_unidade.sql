@@ -1,7 +1,7 @@
 CREATE TABLE tipo_unidade (
-                                 id BIGSERIAL PRIMARY KEY,
-                                 nome varchar(100),
-                                 tipo varchar(10)
+                              id BIGSERIAL PRIMARY KEY,
+                              nome varchar(100),
+                              tipo varchar(10)
 );
 
 INSERT INTO public.tipo_unidade (nome, tipo) VALUES ('Unidade Central (UC)', 'UC');
