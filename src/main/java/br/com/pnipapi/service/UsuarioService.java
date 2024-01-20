@@ -147,7 +147,7 @@ public class UsuarioService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return "ERROR";
+            return e.getCause().getMessage();
         }
     }
 
