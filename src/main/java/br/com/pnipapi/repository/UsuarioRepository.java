@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     @Query(value = "SELECT u.*, p.* FROM usuario u " +
         " JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
@@ -21,13 +21,14 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     List<Usuario> findUsuariosByUuidUnidade(@Param("uuid") String uuid);
 
 
-    @Query(value="SELECT u.*, p.* FROM usuario u " +
+    @Query(value = "SELECT u.*, p.* FROM usuario u " +
         " JOIN unidade_usuario uus ON uus.id_usuario = u.id " +
         " JOIN unidade un ON un.id = uus.id_unidade " +
         " JOIN public.permissao p on uus.id_permissao = p.id " +
         " WHERE un.id = :idUnidade", nativeQuery = true)
     List<Usuario> findRepresentantes(@Param("idUnidade") long idUnidade);
-    @Query(value="""
+
+    @Query(value = """
         SELECT u.* FROM usuario u
         WHERE u.cpf = :cpf """, nativeQuery = true)
     Optional<Usuario> findUsuarioByCpf(@Param("cpf") String cpf);
@@ -37,21 +38,21 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     Optional<Usuario> findAllByUuid(@Param("uuid") UUID uuid);
 
     @Query(value = """
-    SELECT DISTINCT u.id, u.* FROM usuario u 
-    JOIN unidade_usuario  uu ON u.id = uu.id_usuario  
-""", nativeQuery = true)
+            SELECT DISTINCT u.id, u.* FROM usuario u 
+            JOIN unidade_usuario  uu ON u.id = uu.id_usuario  
+        """, nativeQuery = true)
     List<Usuario> findUsuariosDip();
 
-    @Query(value= """
-    SELECT DISTINCT u.id, u.* FROM usuario u 
-    JOIN empresa_usuario eu ON u.id = eu.id_usuario 
-""", nativeQuery = true)
+    @Query(value = """
+            SELECT DISTINCT u.id, u.* FROM usuario u 
+            JOIN empresa_usuario eu ON u.id = eu.id_usuario 
+        """, nativeQuery = true)
     List<Usuario> findUsuariosEmpresas();
 
     @Modifying
-    @Query(value="""
-   INSERT INTO usuario_permissao (id_usuario, id_permissao) VALUES(:idUsuario, :idPermissao)
-        """, nativeQuery = true)
+    @Query(value = """
+        INSERT INTO usuario_permissao (id_usuario, id_permissao) VALUES(:idUsuario, :idPermissao)
+             """, nativeQuery = true)
     void savePermissao(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
 
     @Query(value = """
@@ -72,9 +73,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     List<Permissao> findPermissoesByUsuarioId(@Param("id") Long id, @Param("idUnidade") Long idUnidade);
 
     @Query(value = """
-    SELECT COUNT(*) FROM usuario u
-    WHERE u.cpf = :cpf
-""", nativeQuery = true)
+            SELECT COUNT(*) FROM usuario u
+            WHERE u.cpf = :cpf
+        """, nativeQuery = true)
     int countUsuarioByCpf(@Param("cpf") String cpf);
 
 }
