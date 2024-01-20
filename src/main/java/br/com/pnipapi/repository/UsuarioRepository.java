@@ -58,7 +58,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     SELECT COUNT(*) FROM usuario_permissao up
     WHERE up.id_usuario = :idUsuario AND up.id_permissao = :idPermissao
 """, nativeQuery = true)
-    int countPermissaoByIdUsuarioIdPermissao(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
+    int countPermissaoByUsuarioIdPermissaoId(@Param("idUsuario") Long idUsuario, @Param("idPermissao") Long idPermissao);
 
     Optional<Usuario> findById(@Param("id") Long id);
 
@@ -67,17 +67,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>  {
     FROM permissao p
              JOIN unidade_usuario uu ON p.id = uu.id_permissao
              JOIN unidade un ON uu.id_unidade = un.id
-    WHERE uu.id_usuario = :id AND un.id = :id_unidade;
+    WHERE uu.id_usuario = :id AND un.id = :idUnidade;
 """, nativeQuery = true)
-    List<Permissao> findPermissoesByUsuarioId(@Param("id") Long id, @Param("id_unidade") Long id_unidade);
-
-
-    @Query(value = """
-    SELECT COUNT(*) FROM usuario_permissao up
-    WHERE up.id_usuario = :idUsuario AND up.id_permissao = :idPermissao
-""", nativeQuery = true)
-    int countPermissaoByUsuarioId(@Param("id_usuario") Long idUsuario, @Param("id_permissao") Long idPermissao);
-
+    List<Permissao> findPermissoesByUsuarioId(@Param("id") Long id, @Param("idUnidade") Long idUnidade);
 
     @Query(value = """
     SELECT COUNT(*) FROM usuario u

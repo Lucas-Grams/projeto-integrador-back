@@ -11,7 +11,7 @@ INSERT INTO public.tipo_unidade (nome, tipo) VALUES ('Inspetoria Vetrinária Loc
 INSERT INTO public.tipo_unidade (nome, tipo) VALUES ('Ministério da Pesca e Aquicultura (MPA)', 'MPA');
 INSERT INTO public.tipo_unidade (nome, tipo) VALUES ('Secretaria Nacional (SN)', 'SN');
 INSERT INTO public.tipo_unidade (nome, tipo) VALUES ('Departamento (DP)', 'DP');
-INSERT INTO public.tipo_unidade (nome, tipo) VALUES ('Superintendencia Federal da Pesca (SFP)', 'SFP')
+INSERT INTO public.tipo_unidade (nome, tipo) VALUES ('Superintendencia Federal da Pesca (SFP)', 'SFP');
 
 ALTER TABLE unidade_usuario
 ALTER COLUMN id TYPE bigint;
