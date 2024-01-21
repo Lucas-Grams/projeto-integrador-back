@@ -41,11 +41,4 @@ public interface SolicitarHabilitacaoRepository extends JpaRepository<SolicitarH
     """)
     Optional<Object> findStatusByLastSolicitacao(Long idUsuario);
 
-    @Query(nativeQuery = true, value = """ 
-        SELECT sh.* FROM public.solicitar_habilitacao sh
-        JOIN public.embarcacao_solicitar_habilitacao esh on esh.id_solicitacao = sh.id 
-        WHERE esh.id_embarcacao = :idEmbarcacao and esh.aprovado = true 
-    """)
-    Optional<SolicitarHabilitacao> findSolicitacaoByIdEmbarcacao(Long idEmbarcacao);
-
 }

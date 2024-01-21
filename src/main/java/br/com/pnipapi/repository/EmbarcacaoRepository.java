@@ -12,7 +12,7 @@ public interface EmbarcacaoRepository extends JpaRepository<Embarcacao, Long> {
         SELECT *  
         FROM public.embarcacao e
         WHERE ((e.nome ilike :filter%) OR (e.num_marinha_tie ilike :filter%) OR (e.num_marinha ilike :filter%) OR (e.num_rgp ilike :filter%)) 
-         AND e.id not in (select id_embarcacao from public.embarcacao_solicitar_habilitacao esh where esh.aprovado = true)
+         AND e.id not in (select id_embarcacao from public.embarcacao_tr)
         LIMIT 10
         """)
     List<Embarcacao> findAllEmbarcacaoByRgpTieNome(String filter);

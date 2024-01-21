@@ -3,11 +3,11 @@ package br.com.pnipapi.service;
 import br.com.pnipapi.dto.*;
 import br.com.pnipapi.dto.documentosAPI.*;
 import br.com.pnipapi.exception.BadRequestException;
-import br.com.pnipapi.exception.ConflictException;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
 import br.com.pnipapi.service.storage.StorageObject;
 import br.com.pnipapi.service.storage.StorageService;
+import br.com.pnipapi.utils.Base64Util;
 import br.com.pnipapi.utils.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,9 +52,6 @@ public class TRService {
     ArquivoRepository arquivoRepository;
 
     ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository;
-
-    EmbarcacaoRepository embarcacaoRepository;
-    EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository;
     SolicitarHabilitacaoRepository solicitarHabilitacaoRepository;
     StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository;
 
@@ -73,16 +70,13 @@ public class TRService {
 
     public TRService(ApiDocumentosRest apiDocumentosRest, SolicitarHabilitacaoRepository solicitarHabilitacaoRepository,
         StatusRepository statusRepository, StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository,
-        EmbarcacaoRepository embarcacaoRepository, EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository,
         StorageService storageService, ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository,
         ArquivoRepository arquivoRepository, UsuarioRepository usuarioRepository, UsuarioService usuarioService,
         PermissaoRepository permissaoRepository, EnderecoRepository enderecoRepository) {
         this.statusRepository = statusRepository;
         this.apiDocumentosRest = apiDocumentosRest;
-        this.embarcacaoRepository = embarcacaoRepository;
         this.solicitarHabilitacaoRepository = solicitarHabilitacaoRepository;
         this.statusSolicitarHabilitacaoRepository = statusSolicitarHabilitacaoRepository;
-        this.embarcacaoSolicitarHabilitacaoRepository = embarcacaoSolicitarHabilitacaoRepository;
         this.storageService = storageService;
         this.arquivoSolicitarHabilitacaoRepository = arquivoSolicitarHabilitacaoRepository;
         this.arquivoRepository = arquivoRepository;
@@ -106,8 +100,6 @@ public class TRService {
 
     @Transactional
     public String solicitarHabilitacao(HabilitarTRDTO habilitarTRDTO) {
-
-        validarEmbarcacoes(habilitarTRDTO.getEmbarcacoes().stream().map(EmbarcacaoDTO::getId).toList());
 
         Long idUsuario = criarUsuarioConvidado(habilitarTRDTO);
         this.setID_USUARIO(idUsuario);
@@ -197,19 +189,6 @@ public class TRService {
         return null;
     }
 
-    private void validarEmbarcacoes(List<Long> idsEmbarcacoes) throws ConflictException {
-        if (!CollectionUtils.isEmpty(idsEmbarcacoes)) {
-            idsEmbarcacoes.forEach(id -> {
-                Optional<SolicitarHabilitacao> solicitarHabilitacao =
-                    solicitarHabilitacaoRepository.findSolicitacaoByIdEmbarcacao(id);
-                if (solicitarHabilitacao.isPresent()) {
-                    Embarcacao embarcacao = embarcacaoRepository.getById(id);
-                    throw new ConflictException("Embarcação vínculada em outra solicitação. Embarcação: " + embarcacao.getNome());
-                }
-            });
-        }
-    }
-
     private void validarSolicitacaoHabilitacao() throws AccessDeniedException {
         String status = findStatusUltimaSolicatacao();
         if (StringUtils.hasText(status) && "EM_ANALISE".equals(status) || "DEFERIDA".equals(status)) {
@@ -264,20 +243,6 @@ public class TRService {
                 .build());
             dto.setDiplomaCertificacao(nomeUpload);
             dto.setDiplomaCertificacaoBase64(null);
-        }
-        if (!CollectionUtils.isEmpty(dto.getEmbarcacoes())) {
-            dto.getEmbarcacoes().stream().forEach(e -> {
-                String nomeUpload = String.format("%s.pdf", UUID.randomUUID());
-                anexos.add(ArquivoAnexoSolicitacaoDTO.builder()
-                    .tipoAnexo(ArquivoAnexoSolicitacaoDTO.TipoAnexo.EMBARCACAO)
-                    .nomeUpload(nomeUpload)
-                    .nomeOriginal(e.getDeclaracaoProprietario())
-                    .base64(e.getDeclaracaoProprietarioBase64())
-                    .idEmbarcacao(e.getId())
-                    .build());
-                e.setDeclaracaoProprietario(nomeUpload);
-                e.setDeclaracaoProprietarioBase64(null);
-            });
         }
         return anexos;
     }
@@ -339,9 +304,6 @@ public class TRService {
 
     @Transactional
     public String finalizarSolicitacao(FinalizarSolicitacaoDTO finalizarSolicitacaoDTO) {
-
-        validarEmbarcacoes(finalizarSolicitacaoDTO.getEmbarcacoes().stream().map(FinalizarSolicitacaoDTO.VinculoEmbarcacao::getId).toList());
-
         SolicitarHabilitacao solicitacao = findByUuid(finalizarSolicitacaoDTO.getUuidSolicitacao());
 
         String statusRequest = "deferir".equals(finalizarSolicitacaoDTO.getStatusSolicitacao())?
@@ -352,11 +314,6 @@ public class TRService {
 
         solicitarHabilitacaoRepository.saveAndFlush(solicitacao);
 
-        // vincula as embarcações aprovadas ou reprovadas (manter histórico)
-        finalizarSolicitacaoDTO.getEmbarcacoes().forEach(embarcacao -> {
-            embarcacaoSolicitarHabilitacaoRepository.saveAndFlush(new EmbarcacaoSolicitarHabilitacao(embarcacao.getId(),
-                solicitacao.getId(), embarcacao.getAprovado()));
-        });
         return "Ação realizada com sucesso";
     }
 
@@ -364,7 +321,7 @@ public class TRService {
         anexos.forEach(anexo -> {
             String filepath = String.format("solicitacao/%s/anexo/%s", solicitacao.getUuidSolicitacao().toString(), anexo.getNomeUpload());
             Path path = Paths.get(filepath);
-            storageService.save(path, getBytesFromBase64(anexo.getBase64()));
+            storageService.save(path, Base64Util.getBytesFromBase64(anexo.getBase64()));
 
             Arquivo arquivo = new Arquivo();
             arquivo.setNome(anexo.getNomeUpload());
@@ -376,14 +333,6 @@ public class TRService {
             arquivoSolicitarHabilitacaoRepository.saveAndFlush(new ArquivoSolicitarHabilitacao(
                 arquivo.getId(), solicitacao.getId(), anexo.getIdEmbarcacao()));
         });
-    }
-
-    private byte[] getBytesFromBase64(String base64) {
-        String prefix = "data:application/pdf;base64,";
-        if (base64.startsWith(prefix)) {
-            base64 = base64.substring(prefix.length());
-        }
-        return Base64.getDecoder().decode(base64);
     }
 
     public byte[] downloadAnexo(String uuid, String nome) {

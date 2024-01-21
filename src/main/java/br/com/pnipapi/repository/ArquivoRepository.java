@@ -17,11 +17,4 @@ public interface ArquivoRepository extends JpaRepository<Arquivo, Long>  {
     """)
     Optional<Arquivo> findByIdSolicitacaoNome(Long idSolicitacao, String nome);
 
-    @Query(nativeQuery = true, value = """
-        SELECT * FROM public.arquivo a
-        JOIN public.arquivo_solicitar_habilitacao ash on ash.id_arquivo = a.id
-        WHERE ash.id_solicitacao = :idSolicitacao and ash.id_embarcacao = :idEmbarcacao
-    """)
-    Optional<Arquivo> findByIdSolicitacaoIdEmbarcacao(Long idSolicitacao, Long idEmbarcacao);
-
 }
