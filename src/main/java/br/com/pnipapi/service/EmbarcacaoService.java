@@ -53,7 +53,7 @@ public class EmbarcacaoService {
             return new EmbarcacaoDTO(embarcacao.getId(), embarcacao.getNome(), embarcacao.getNumMarinhaTie(),
                 embarcacao.getNumMarinha(), embarcacao.getNumRgp(), embarcacao.getUf(), embarcacao.getPais(),
                 embarcacao.getAnoConstrucao(), embarcacao.getHp(), embarcacao.getComprimento(),
-                embarcacao.getPetrecho(), embarcacao.getCodigoIn(), frota);
+                embarcacao.getPetrecho(), embarcacao.getCodigoIn(), frota, null);
         }).toList();
 
     }
@@ -96,9 +96,11 @@ public class EmbarcacaoService {
                 .ativo(Boolean.parseBoolean(result[2].toString()))
                 .dataCriacao(result[3].toString())
                 .embarcacaoDTO(EmbarcacaoDTO.builder()
+                    .id(Long.parseLong(result[7].toString()))
                     .numRgp(result[4].toString())
                     .nome(result[5].toString())
                     .frota(result[6].toString())
+                    .tipoCertificacao(embarcacaoRepository.findCertificadoByIdEmbarcacao(Long.parseLong(result[7].toString())))
                     .build())
                 .build()
         ).collect(Collectors.toList());

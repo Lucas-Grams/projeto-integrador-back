@@ -3,6 +3,7 @@ package br.com.pnipapi.service;
 import br.com.pnipapi.dto.*;
 import br.com.pnipapi.dto.documentosAPI.*;
 import br.com.pnipapi.exception.BadRequestException;
+import br.com.pnipapi.exception.NotFoundException;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
 import br.com.pnipapi.service.storage.StorageObject;
@@ -51,6 +52,10 @@ public class TRService {
 
     ArquivoRepository arquivoRepository;
 
+    EmbarcacaoRepository embarcacaoRepository;
+
+    EmbarcacaoTRRepository embarcacaoTRRepository;
+
     ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository;
     SolicitarHabilitacaoRepository solicitarHabilitacaoRepository;
     StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository;
@@ -72,7 +77,9 @@ public class TRService {
         StatusRepository statusRepository, StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository,
         StorageService storageService, ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository,
         ArquivoRepository arquivoRepository, UsuarioRepository usuarioRepository, UsuarioService usuarioService,
-        PermissaoRepository permissaoRepository, EnderecoRepository enderecoRepository) {
+        PermissaoRepository permissaoRepository, EnderecoRepository enderecoRepository,
+        EmbarcacaoRepository embarcacaoRepository,
+        EmbarcacaoTRRepository embarcacaoTRRepository) {
         this.statusRepository = statusRepository;
         this.apiDocumentosRest = apiDocumentosRest;
         this.solicitarHabilitacaoRepository = solicitarHabilitacaoRepository;
@@ -84,6 +91,8 @@ public class TRService {
         this.usuarioService = usuarioService;
         this.permissaoRepository = permissaoRepository;
         this.enderecoRepository = enderecoRepository;
+        this.embarcacaoRepository = embarcacaoRepository;
+        this.embarcacaoTRRepository = embarcacaoTRRepository;
     }
 
     public List<SolicitarHabilitacao> findAll() {
@@ -314,6 +323,21 @@ public class TRService {
 
         solicitarHabilitacaoRepository.saveAndFlush(solicitacao);
 
+        // criar data de vinculação e desvinculação
+        Usuario usuario = usuarioRepository.getById(solicitacao.getIdUsuario());
+        List<Object[]> result = embarcacaoRepository.findEmbarcacoesByCpfTR(usuario.getCpf());
+        if (!CollectionUtils.isEmpty(result) && statusRequest.equals(StatusSolicitacao.DEFERIDA.name())) {
+            result.forEach(object -> {
+                UUID uuid = UUID.randomUUID();
+                EmbarcacaoTR embarcacaoTR = EmbarcacaoTR.builder()
+                    .uuid(uuid)
+                    .embarcacao(embarcacaoRepository.getById(Long.parseLong(object[0].toString())))
+                    .usuario(usuario)
+                    .ativo(true)
+                    .build();
+                embarcacaoTRRepository.saveAndFlush(embarcacaoTR);
+            });
+        }
         return "Ação realizada com sucesso";
     }
 
@@ -376,6 +400,17 @@ public class TRService {
             return status.get().toString();
         }
         return null;
+    }
+
+    public String desvincularEmbarcacao(String uuidVinculoEmbarcacao) {
+        Optional<EmbarcacaoTR> embarcacaoTR = embarcacaoTRRepository.findByUuid(UUID.fromString(uuidVinculoEmbarcacao));
+        if (!embarcacaoTR.isPresent()) {
+            throw new NotFoundException("Vínculo não encontrado. Vínculo UUID: "  + embarcacaoTR.get().getEmbarcacao().getId());
+        }
+        embarcacaoTR.get().setAtivo(Boolean.FALSE);
+        embarcacaoTRRepository.saveAndFlush(embarcacaoTR.get());
+
+        return "Operação realizada com sucesso";
     }
 
 }
