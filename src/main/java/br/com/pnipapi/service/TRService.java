@@ -329,13 +329,17 @@ public class TRService {
         if (!CollectionUtils.isEmpty(result) && statusRequest.equals(StatusSolicitacao.DEFERIDA.name())) {
             result.forEach(object -> {
                 UUID uuid = UUID.randomUUID();
+                Embarcacao embarcacao = embarcacaoRepository.getById(Long.parseLong(object[0].toString()));
                 EmbarcacaoTR embarcacaoTR = EmbarcacaoTR.builder()
                     .uuid(uuid)
-                    .embarcacao(embarcacaoRepository.getById(Long.parseLong(object[0].toString())))
+                    .embarcacao(embarcacao)
                     .usuario(usuario)
                     .ativo(true)
                     .build();
-                embarcacaoTRRepository.saveAndFlush(embarcacaoTR);
+
+                if (!embarcacaoTRRepository.existsVinculacaoByIdUsuarioIdEmbarcacao(usuario.getId(), embarcacao.getId()).isPresent()) {
+                    embarcacaoTRRepository.saveAndFlush(embarcacaoTR);
+                }
             });
         }
         return "Ação realizada com sucesso";

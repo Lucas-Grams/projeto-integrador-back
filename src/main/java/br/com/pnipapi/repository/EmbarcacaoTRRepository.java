@@ -35,4 +35,11 @@ public interface EmbarcacaoTRRepository extends JpaRepository<EmbarcacaoTR, Long
     """)
     List<Object[]> minhasEmbarcacoes(Long idUsuario);
 
+    @Query(nativeQuery = true, value = """ 
+        SELECT *
+        FROM public.embarcacao_tr _this
+        WHERE _this.id_embarcacao = :idEmbarcacao and _this.id_usuario = :idUsuario
+    """)
+    Optional<EmbarcacaoTR> existsVinculacaoByIdUsuarioIdEmbarcacao(Long idUsuario, Long idEmbarcacao);
+
 }
