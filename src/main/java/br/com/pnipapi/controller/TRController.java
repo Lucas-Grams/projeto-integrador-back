@@ -71,4 +71,9 @@ public class TRController {
         return ResponseEntity.of(Optional.of(trService.downloadAnexo(uuid, nome)));
     }
 
+    @PostMapping("/desvincular-embarcacao")
+    ResponseDTO<String> desvincularEmbarcacao(@RequestBody String uuid) {
+        return ResponseDTO.ok(trService.desvincularEmbarcacao(uuid));
+    }
+
 }
