@@ -34,7 +34,6 @@ public class EmbarcacaoDTO {
     @NotNull @NotEmpty
     private String codigoIn;
     private String frota;
-    private String declaracaoProprietario;
-    private String declaracaoProprietarioBase64;
+    private String tipoCertificacao;
 
 }

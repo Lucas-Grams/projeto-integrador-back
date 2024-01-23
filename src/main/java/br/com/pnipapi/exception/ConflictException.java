@@ -8,6 +8,10 @@ public class ConflictException extends RuntimeException {
 
     private String msgUser;
 
+    public ConflictException(String msgLog) {
+        super(msgLog);
+    }
+
     public ConflictException(String msgLog, String msgUser) {
         super(msgLog);
         this.msgUser = msgUser;

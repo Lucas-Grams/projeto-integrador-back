@@ -3,10 +3,12 @@ package br.com.pnipapi.service;
 import br.com.pnipapi.dto.*;
 import br.com.pnipapi.dto.documentosAPI.*;
 import br.com.pnipapi.exception.BadRequestException;
+import br.com.pnipapi.exception.NotFoundException;
 import br.com.pnipapi.model.*;
 import br.com.pnipapi.repository.*;
 import br.com.pnipapi.service.storage.StorageObject;
 import br.com.pnipapi.service.storage.StorageService;
+import br.com.pnipapi.utils.Base64Util;
 import br.com.pnipapi.utils.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,10 +52,11 @@ public class TRService {
 
     ArquivoRepository arquivoRepository;
 
-    ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository;
-
     EmbarcacaoRepository embarcacaoRepository;
-    EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository;
+
+    EmbarcacaoTRRepository embarcacaoTRRepository;
+
+    ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository;
     SolicitarHabilitacaoRepository solicitarHabilitacaoRepository;
     StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository;
 
@@ -72,16 +75,15 @@ public class TRService {
 
     public TRService(ApiDocumentosRest apiDocumentosRest, SolicitarHabilitacaoRepository solicitarHabilitacaoRepository,
         StatusRepository statusRepository, StatusSolicitarHabilitacaoRepository statusSolicitarHabilitacaoRepository,
-        EmbarcacaoRepository embarcacaoRepository, EmbarcacaoSolicitarHabilitacaoRepository embarcacaoSolicitarHabilitacaoRepository,
         StorageService storageService, ArquivoSolicitarHabilitacaoRepository arquivoSolicitarHabilitacaoRepository,
         ArquivoRepository arquivoRepository, UsuarioRepository usuarioRepository, UsuarioService usuarioService,
-        PermissaoRepository permissaoRepository, EnderecoRepository enderecoRepository) {
+        PermissaoRepository permissaoRepository, EnderecoRepository enderecoRepository,
+        EmbarcacaoRepository embarcacaoRepository,
+        EmbarcacaoTRRepository embarcacaoTRRepository) {
         this.statusRepository = statusRepository;
         this.apiDocumentosRest = apiDocumentosRest;
-        this.embarcacaoRepository = embarcacaoRepository;
         this.solicitarHabilitacaoRepository = solicitarHabilitacaoRepository;
         this.statusSolicitarHabilitacaoRepository = statusSolicitarHabilitacaoRepository;
-        this.embarcacaoSolicitarHabilitacaoRepository = embarcacaoSolicitarHabilitacaoRepository;
         this.storageService = storageService;
         this.arquivoSolicitarHabilitacaoRepository = arquivoSolicitarHabilitacaoRepository;
         this.arquivoRepository = arquivoRepository;
@@ -89,6 +91,8 @@ public class TRService {
         this.usuarioService = usuarioService;
         this.permissaoRepository = permissaoRepository;
         this.enderecoRepository = enderecoRepository;
+        this.embarcacaoRepository = embarcacaoRepository;
+        this.embarcacaoTRRepository = embarcacaoTRRepository;
     }
 
     public List<SolicitarHabilitacao> findAll() {
@@ -105,70 +109,67 @@ public class TRService {
 
     @Transactional
     public String solicitarHabilitacao(HabilitarTRDTO habilitarTRDTO) {
+
+        Long idUsuario = criarUsuarioConvidado(habilitarTRDTO);
+        this.setID_USUARIO(idUsuario);
+
         try {
-            Long idUsuario = criarUsuarioConvidado(habilitarTRDTO);
-            this.setID_USUARIO(idUsuario);
-
             validarSolicitacaoHabilitacao();
-
-            List<ArquivoAnexoSolicitacaoDTO> anexos = extrairAnexosDaSolicitacao(habilitarTRDTO);
-
-            // TODO DESCOMENTAR QUANDO O GERAR TOKEN E SALVAR NOVO USUARIO NO KEYCLOAK ESTIVER OK
-            //ProcessoDTO solicitacao = apiDocumentosRest.criarSolicitacaoHabilitacaoTR();
-            ProcessoDTO solicitacao = new ProcessoDTO();
-            solicitacao.setCriadoEm(new Timestamp(System.currentTimeMillis()));
-            solicitacao.setUuid(UUID.randomUUID().toString());
-
-            if (Objects.isNull(solicitacao)) {
-                throw new BadRequestException("Falha ao criar a solicitação - API DOCUMENTOS");
-            }
-
-            // TODO DESCOMENTAR QUANDO O GERAR TOKEN E SALVAR NOVO USUARIO NO KEYCLOAK ESTIVER OK
-            //DespachoDTO despachoDTO = apiDocumentosRest.salvarDespacho(buildDespacho(habilitarTRDTO),UUID.fromString(solicitacao.getUuid()));
-            DespachoDTO despachoDTO = buildDespacho(habilitarTRDTO);
-
-            if (Objects.isNull(despachoDTO)) {
-                throw new BadRequestException("Falha ao criar despacho - API DOCUMENTOS");
-            }
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS,false);
-
-            SolicitarHabilitacaoDTO solicitarHabilitacaoDTO = new SolicitarHabilitacaoDTO();
-            solicitarHabilitacaoDTO.setDespachoDTO(despachoDTO);
-            solicitarHabilitacaoDTO.setHabilitarTRDTO(habilitarTRDTO);
-
-            SolicitarHabilitacao solicitarHabilitacao = new SolicitarHabilitacao();
-            solicitarHabilitacao.setSolicitante(habilitarTRDTO.getNome());
-
-            Status status = statusRepository.findByDescricao(StatusSolicitacao.EM_ANALISE.name()).get();
-            solicitarHabilitacao.setStatus(status.getDescricao());
-
-            solicitarHabilitacao.setMetadado(convertJsonToString(solicitarHabilitacaoDTO));
-            solicitarHabilitacao.setIdUsuario(this.getID_USUARIO());
-            solicitarHabilitacao.setUuidSolicitacao(UUID.fromString(solicitacao.getUuid()));
-            solicitarHabilitacao.setDataSolicitacao(new Date(solicitacao.getCriadoEm().getTime()));
-            // TODO REVER
-            solicitarHabilitacao.setProtocolo(Long.toString(new java.util.Date().getTime()));
-
-            validarEmbarcacoes(habilitarTRDTO);
-
-            // Salva solicitação
-            SolicitarHabilitacao solicitarHabilitacaoSalvo = solicitarHabilitacaoRepository.saveAndFlush(solicitarHabilitacao);
-
-            // Upload dos anexo
-            uploadAnexoSolicitacao(solicitarHabilitacaoSalvo, anexos);
-
-            // Salva status solicitação
-            statusSolicitarHabilitacaoRepository.saveAndFlush(new StatusSolicitarHabilitacao(status.getId(),
-                solicitarHabilitacaoSalvo.getId()));
-
-            return "Solicitação realizada com sucesso";
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.warn(e.getMessage());
-            return e.getMessage();
+        } catch (AccessDeniedException e) {
+            throw new RuntimeException(e);
         }
+
+        List<ArquivoAnexoSolicitacaoDTO> anexos = extrairAnexosDaSolicitacao(habilitarTRDTO);
+
+        // TODO DESCOMENTAR QUANDO O GERAR TOKEN E SALVAR NOVO USUARIO NO KEYCLOAK ESTIVER OK
+        //ProcessoDTO solicitacao = apiDocumentosRest.criarSolicitacaoHabilitacaoTR();
+        ProcessoDTO solicitacao = new ProcessoDTO();
+        solicitacao.setCriadoEm(new Timestamp(System.currentTimeMillis()));
+        solicitacao.setUuid(UUID.randomUUID().toString());
+
+        if (Objects.isNull(solicitacao)) {
+            throw new BadRequestException("Falha ao criar a solicitação - API DOCUMENTOS");
+        }
+
+        // TODO DESCOMENTAR QUANDO O GERAR TOKEN E SALVAR NOVO USUARIO NO KEYCLOAK ESTIVER OK
+        //DespachoDTO despachoDTO = apiDocumentosRest.salvarDespacho(buildDespacho(habilitarTRDTO),UUID.fromString(solicitacao.getUuid()));
+        DespachoDTO despachoDTO = buildDespacho(habilitarTRDTO);
+
+        if (Objects.isNull(despachoDTO)) {
+            throw new BadRequestException("Falha ao criar despacho - API DOCUMENTOS");
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS,false);
+
+        SolicitarHabilitacaoDTO solicitarHabilitacaoDTO = new SolicitarHabilitacaoDTO();
+        solicitarHabilitacaoDTO.setDespachoDTO(despachoDTO);
+        solicitarHabilitacaoDTO.setHabilitarTRDTO(habilitarTRDTO);
+
+        SolicitarHabilitacao solicitarHabilitacao = new SolicitarHabilitacao();
+        solicitarHabilitacao.setSolicitante(habilitarTRDTO.getNome());
+
+        Status status = statusRepository.findByDescricao(StatusSolicitacao.EM_ANALISE.name()).get();
+        solicitarHabilitacao.setStatus(status.getDescricao());
+
+        solicitarHabilitacao.setMetadado(convertJsonToString(solicitarHabilitacaoDTO));
+        solicitarHabilitacao.setIdUsuario(this.getID_USUARIO());
+        solicitarHabilitacao.setUuidSolicitacao(UUID.fromString(solicitacao.getUuid()));
+        solicitarHabilitacao.setDataSolicitacao(new Date(solicitacao.getCriadoEm().getTime()));
+        // TODO REVER
+        solicitarHabilitacao.setProtocolo(Long.toString(new java.util.Date().getTime()));
+
+        // Salva solicitação
+        SolicitarHabilitacao solicitarHabilitacaoSalvo = solicitarHabilitacaoRepository.saveAndFlush(solicitarHabilitacao);
+
+        // Upload dos anexo
+        uploadAnexoSolicitacao(solicitarHabilitacaoSalvo, anexos);
+
+        // Salva status solicitação
+        statusSolicitarHabilitacaoRepository.saveAndFlush(new StatusSolicitarHabilitacao(status.getId(),
+            solicitarHabilitacaoSalvo.getId()));
+
+        return "Solicitação realizada com sucesso";
     }
 
     private Long criarUsuarioConvidado(HabilitarTRDTO habilitarTRDTO) {
@@ -195,18 +196,6 @@ public class TRService {
             }
         }
         return null;
-    }
-
-    private void validarEmbarcacoes(HabilitarTRDTO habilitarTRDTO) {
-        if (habilitarTRDTO != null && !CollectionUtils.isEmpty(habilitarTRDTO.getEmbarcacoes())) {
-            habilitarTRDTO.getEmbarcacoes().forEach(embarcacao -> {
-                Optional<SolicitarHabilitacao> solicitarHabilitacao =
-                    solicitarHabilitacaoRepository.findSolicitacaoByIdEmbarcacao(embarcacao.getId());
-                if (solicitarHabilitacao.isPresent()) {
-                    throw new BadRequestException("Embarcação vínculada em outra solicitação. Embarcação: " + embarcacao.getNome());
-                }
-            });
-        }
     }
 
     private void validarSolicitacaoHabilitacao() throws AccessDeniedException {
@@ -263,20 +252,6 @@ public class TRService {
                 .build());
             dto.setDiplomaCertificacao(nomeUpload);
             dto.setDiplomaCertificacaoBase64(null);
-        }
-        if (!CollectionUtils.isEmpty(dto.getEmbarcacoes())) {
-            dto.getEmbarcacoes().stream().forEach(e -> {
-                String nomeUpload = String.format("%s.pdf", UUID.randomUUID());
-                anexos.add(ArquivoAnexoSolicitacaoDTO.builder()
-                    .tipoAnexo(ArquivoAnexoSolicitacaoDTO.TipoAnexo.EMBARCACAO)
-                    .nomeUpload(nomeUpload)
-                    .nomeOriginal(e.getDeclaracaoProprietario())
-                    .base64(e.getDeclaracaoProprietarioBase64())
-                    .idEmbarcacao(e.getId())
-                    .build());
-                e.setDeclaracaoProprietario(nomeUpload);
-                e.setDeclaracaoProprietarioBase64(null);
-            });
         }
         return anexos;
     }
@@ -338,37 +313,43 @@ public class TRService {
 
     @Transactional
     public String finalizarSolicitacao(FinalizarSolicitacaoDTO finalizarSolicitacaoDTO) {
-        try {
+        SolicitarHabilitacao solicitacao = findByUuid(finalizarSolicitacaoDTO.getUuidSolicitacao());
 
-            SolicitarHabilitacao solicitacao = findByUuid(finalizarSolicitacaoDTO.getUuidSolicitacao());
+        String statusRequest = "deferir".equals(finalizarSolicitacaoDTO.getStatusSolicitacao())?
+            StatusSolicitacao.DEFERIDA.name(): StatusSolicitacao.INDEFERIDA.name();
 
-            String statusRequest = "deferir".equals(finalizarSolicitacaoDTO.getStatusSolicitacao())?
-                StatusSolicitacao.DEFERIDA.name(): StatusSolicitacao.INDEFERIDA.name();
+        solicitacao.setStatus(statusRepository.findByDescricao(statusRequest).get().getDescricao());
+        solicitacao.setObservacao(finalizarSolicitacaoDTO.getMsgSolicitacao());
 
-            solicitacao.setStatus(statusRepository.findByDescricao(statusRequest).get().getDescricao());
-            solicitacao.setObservacao(finalizarSolicitacaoDTO.getMsgSolicitacao());
+        solicitarHabilitacaoRepository.saveAndFlush(solicitacao);
 
-            solicitarHabilitacaoRepository.saveAndFlush(solicitacao);
+        // criar data de vinculação e desvinculação
+        Usuario usuario = usuarioRepository.getById(solicitacao.getIdUsuario());
+        List<Object[]> result = embarcacaoRepository.findEmbarcacoesByCpfTR(usuario.getCpf());
+        if (!CollectionUtils.isEmpty(result) && statusRequest.equals(StatusSolicitacao.DEFERIDA.name())) {
+            result.forEach(object -> {
+                UUID uuid = UUID.randomUUID();
+                Embarcacao embarcacao = embarcacaoRepository.getById(Long.parseLong(object[0].toString()));
+                EmbarcacaoTR embarcacaoTR = EmbarcacaoTR.builder()
+                    .uuid(uuid)
+                    .embarcacao(embarcacao)
+                    .usuario(usuario)
+                    .ativo(true)
+                    .build();
 
-            // vincula as embarcações aprovadas ou reprovadas (manter histórico)
-            finalizarSolicitacaoDTO.getEmbarcacoes().forEach(embarcacao -> {
-                embarcacaoSolicitarHabilitacaoRepository.saveAndFlush(new EmbarcacaoSolicitarHabilitacao(embarcacao.getId(),
-                    solicitacao.getId(), embarcacao.getAprovado()));
+                if (!embarcacaoTRRepository.existsVinculacaoByIdUsuarioIdEmbarcacao(usuario.getId(), embarcacao.getId()).isPresent()) {
+                    embarcacaoTRRepository.saveAndFlush(embarcacaoTR);
+                }
             });
-
-            return "Ação realizada com sucesso";
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.warn(e.getMessage());
-            return e.getMessage();
         }
+        return "Ação realizada com sucesso";
     }
 
     private void uploadAnexoSolicitacao(SolicitarHabilitacao solicitacao, List<ArquivoAnexoSolicitacaoDTO> anexos) {
         anexos.forEach(anexo -> {
             String filepath = String.format("solicitacao/%s/anexo/%s", solicitacao.getUuidSolicitacao().toString(), anexo.getNomeUpload());
             Path path = Paths.get(filepath);
-            storageService.save(path, getBytesFromBase64(anexo.getBase64()));
+            storageService.save(path, Base64Util.getBytesFromBase64(anexo.getBase64()));
 
             Arquivo arquivo = new Arquivo();
             arquivo.setNome(anexo.getNomeUpload());
@@ -380,14 +361,6 @@ public class TRService {
             arquivoSolicitarHabilitacaoRepository.saveAndFlush(new ArquivoSolicitarHabilitacao(
                 arquivo.getId(), solicitacao.getId(), anexo.getIdEmbarcacao()));
         });
-    }
-
-    private byte[] getBytesFromBase64(String base64) {
-        String prefix = "data:application/pdf;base64,";
-        if (base64.startsWith(prefix)) {
-            base64 = base64.substring(prefix.length());
-        }
-        return Base64.getDecoder().decode(base64);
     }
 
     public byte[] downloadAnexo(String uuid, String nome) {
@@ -431,6 +404,17 @@ public class TRService {
             return status.get().toString();
         }
         return null;
+    }
+
+    public String desvincularEmbarcacao(String uuidVinculoEmbarcacao) {
+        Optional<EmbarcacaoTR> embarcacaoTR = embarcacaoTRRepository.findByUuid(UUID.fromString(uuidVinculoEmbarcacao));
+        if (!embarcacaoTR.isPresent()) {
+            throw new NotFoundException("Vínculo não encontrado. Vínculo UUID: "  + embarcacaoTR.get().getEmbarcacao().getId());
+        }
+        embarcacaoTR.get().setAtivo(Boolean.FALSE);
+        embarcacaoTRRepository.saveAndFlush(embarcacaoTR.get());
+
+        return "Operação realizada com sucesso";
     }
 
 }

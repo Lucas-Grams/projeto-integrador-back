@@ -5,7 +5,6 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Builder
 @Getter
@@ -43,7 +42,5 @@ public class HabilitarTRDTO {
     // arquivos em base64
     private String copiaHabilitacaoBase64;
     private String diplomaCertificacaoBase64;
-
-    private List<EmbarcacaoDTO> embarcacoes;
 
 }
