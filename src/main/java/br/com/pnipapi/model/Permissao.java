@@ -1,22 +1,25 @@
 package br.com.pnipapi.model;
-
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.hibernate.validator.constraints.Length;
-
+import lombok.NoArgsConstructor;
 import javax.persistence.*;
 
 @Data
 @Table(name = "permissao", schema = "public")
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class Permissao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id")
     private Long id;
 
-    @Column(name = "descricao", nullable = false, length = 255)
-    @Length(max = 255)
+    @Column(name="descricao")
     private String descricao;
 
+    public Permissao(String descricao) {
+        this.descricao = descricao.toLowerCase();
+    }
 }
