@@ -174,7 +174,8 @@ public class TRService {
 
     private Long criarUsuarioConvidado(HabilitarTRDTO habilitarTRDTO) {
         if (habilitarTRDTO != null && Strings.isNotEmpty(habilitarTRDTO.getCpf()) && Strings.isNotBlank(habilitarTRDTO.getCpf())) {
-            Optional<Usuario> usuario = usuarioRepository.findUsuarioByCpf(habilitarTRDTO.getCpf());
+            String cpfSemCaracteres = habilitarTRDTO.getCpf().replaceAll("[^0-9]", "");
+            Optional<Usuario> usuario = usuarioRepository.findUsuarioByCpf(cpfSemCaracteres);
             if (!usuario.isPresent()) {
                 Endereco endereco = new Endereco(habilitarTRDTO.getLogradouro(), habilitarTRDTO.getCep(),
                     habilitarTRDTO.getNumero(), habilitarTRDTO.getComplemento(), habilitarTRDTO.getMunicipio(),
@@ -184,7 +185,7 @@ public class TRService {
 
                 Usuario newUsuario = new Usuario();
                 newUsuario.setSenha(User.generatePasswordBCrypt("123456"));
-                newUsuario.setCpf(habilitarTRDTO.getCpf().replaceAll("[^0-9]", "")); // remove (./-)
+                newUsuario.setCpf(cpfSemCaracteres);
                 newUsuario.setNome(habilitarTRDTO.getNome());
                 newUsuario.setEmail(habilitarTRDTO.getEmail());
                 newUsuario.setAtivo(Boolean.TRUE);
@@ -194,6 +195,7 @@ public class TRService {
                 newUsuario = usuarioRepository.saveAndFlush(newUsuario);
                 return newUsuario.getId();
             }
+            return usuario.get().getId();
         }
         return null;
     }
