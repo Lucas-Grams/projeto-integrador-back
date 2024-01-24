@@ -17,6 +17,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -109,14 +110,14 @@ public class TRService {
 
     @Transactional
     public String solicitarHabilitacao(HabilitarTRDTO habilitarTRDTO) {
-
-        Long idUsuario = criarUsuarioConvidado(habilitarTRDTO);
-        this.setID_USUARIO(idUsuario);
-
         try {
+            Long idUsuario = criarUsuarioConvidado(habilitarTRDTO);
+            this.setID_USUARIO(idUsuario);
             validarSolicitacaoHabilitacao();
         } catch (AccessDeniedException e) {
             throw new RuntimeException(e);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Já existe um usuário com este e-mail.");
         }
 
         List<ArquivoAnexoSolicitacaoDTO> anexos = extrairAnexosDaSolicitacao(habilitarTRDTO);
@@ -217,6 +218,7 @@ public class TRService {
                 Long.parseLong(result[1].toString()),
                 result[2].toString(),
                 result[3].toString(),
+                result[5] != null ? result[5].toString() : null,
                 result[4].toString()
             )).collect(Collectors.toList());
     }
@@ -400,10 +402,29 @@ public class TRService {
     }
 
     public String findStatusUltimaSolicatacao() {
+        SolicitacaoHabilitacaoDTO solicitacao = findLastSolicitacao();
+        if (solicitacao != null) {
+            return solicitacao.status();
+        }
+        return null;
+    }
+
+    public SolicitacaoHabilitacaoDTO findUltimaSolicatacao() {
+        return findLastSolicitacao();
+    }
+
+    private SolicitacaoHabilitacaoDTO findLastSolicitacao() {
         Long idUsuario = this.getID_USUARIO();
-        Optional<Object> status = solicitarHabilitacaoRepository.findStatusByLastSolicitacao(idUsuario);
-        if (status.isPresent() && StringUtils.hasText(status.get().toString())) {
-            return status.get().toString();
+        SolicitarHabilitacao solicitacao = solicitarHabilitacaoRepository.findLastSolicitacao(idUsuario).orElse(null);
+        if (solicitacao != null) {
+            return new SolicitacaoHabilitacaoDTO(
+                solicitacao.getId(),
+                solicitacao.getIdUsuario(),
+                solicitacao.getUuidSolicitacao().toString(),
+                solicitacao.getStatus(),
+                solicitacao.getObservacao(),
+                solicitacao.getDataSolicitacao().toString()
+            );
         }
         return null;
     }
