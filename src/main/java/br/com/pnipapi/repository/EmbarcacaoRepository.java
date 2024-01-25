@@ -28,10 +28,8 @@ public interface EmbarcacaoRepository extends JpaRepository<Embarcacao, Long> {
 
     //TODO - Feito para evitar cadastrar embarcações ja catalogadas manualmente
     @Query(nativeQuery = true, value = """ 
-        SELECT e.id, f.codigo FROM public.embarcacao_tr_temp ett
+        SELECT e.id FROM public.embarcacao_tr_temp ett
         JOIN public.embarcacao e on e.id = ett.id_embarcacao
-        JOIN public.embarcacao_frota ef on ef.id_embarcacao = e.id
-        JOIN public.frota f on f.id = ef.id_frota
         WHERE ett.cpf = :cpf 
         """)
     List<Object[]> findEmbarcacoesByCpfTR(String cpf);
