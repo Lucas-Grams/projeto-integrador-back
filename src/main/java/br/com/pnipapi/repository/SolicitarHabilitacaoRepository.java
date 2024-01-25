@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface SolicitarHabilitacaoRepository extends JpaRepository<SolicitarHabilitacao, Long>  {
 
     @Query(nativeQuery = true, value = """ 
-        SELECT id, id_usuario, cast(uuid_solicitacao as text), status, data_solicitacao 
+        SELECT id, id_usuario, cast(uuid_solicitacao as text), status, data_solicitacao, observacao
         FROM public.solicitar_habilitacao 
         WHERE id_usuario = :idUsuario 
         ORDER BY id DESC
@@ -37,8 +37,10 @@ public interface SolicitarHabilitacaoRepository extends JpaRepository<SolicitarH
     List<SolicitarHabilitacao> findSolicitacoesByStatus(List<String> status);
 
     @Query(nativeQuery = true, value = """
-        SELECT status FROM public.solicitar_habilitacao WHERE id_usuario = :idUsuario ORDER BY id DESC LIMIT 1;
+        SELECT * FROM public.solicitar_habilitacao 
+        WHERE id_usuario = :idUsuario 
+        ORDER BY id DESC LIMIT 1;
     """)
-    Optional<Object> findStatusByLastSolicitacao(Long idUsuario);
+    Optional<SolicitarHabilitacao> findLastSolicitacao(Long idUsuario);
 
 }

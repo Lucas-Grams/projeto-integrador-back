@@ -35,7 +35,12 @@ public class TRController {
 
     @PostMapping("/solicitar-habilitacao")
     ResponseDTO<String> solicitarHabilitacao(@RequestBody HabilitarTRDTO habilitarTRDTO) {
-        return ResponseDTO.ok(trService.solicitarHabilitacao(habilitarTRDTO));
+        try {
+            String msg = trService.solicitarHabilitacao(habilitarTRDTO);
+            return ResponseDTO.ok(msg);
+        } catch (Exception ex) {
+            return ResponseDTO.err(ex.getMessage());
+        }
     }
 
     @GetMapping("/find/solicitacao/by/uuid/{uuid}")
@@ -59,6 +64,11 @@ public class TRController {
     @GetMapping("/find/status/ultima/solicitacao")
     ResponseDTO<String> findStatusUltimaSolicatacao() {
         return ResponseDTO.ok(trService.findStatusUltimaSolicatacao());
+    }
+
+    @GetMapping("/find/ultima/solicitacao")
+    ResponseDTO<SolicitacaoHabilitacaoDTO> findUltimaSolicatacao() {
+        return ResponseDTO.ok(trService.findUltimaSolicatacao());
     }
 
     @PostMapping("/finalizar-solicitacao")
