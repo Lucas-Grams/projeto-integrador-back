@@ -15,7 +15,6 @@ RUN ./mvnw -B ${MVNARGS} -Dmaven.test.skip -Dnet.bytebuddy.experimental=true
 FROM openjdk:17.0.1-jdk-slim-bullseye as RUNNER
 
 
-
 RUN echo "America/Sao_Paulo" > /etc/timezone
 
 ENV LANG='pt_BR.UTF-8' LANGUAGE='pt_BR.UTF-8' LC_ALL='pt_BR.UTF-8'
