@@ -21,4 +21,21 @@ public class Frota {
     @Basic
     @Column(name = "descricao", nullable = true, length = -1)
     private String descricao;
+
+    @Basic
+    @Column(name = "modalidade_pesca_complementar", nullable = true, length = -1)
+    private String modalidadePescaComplementar;
+
+    @Basic
+    @Column(name = "modalidade_pesca_principal", nullable = true, length = -1)
+    private String modalidadePescaPrincipal;
+
+    @Basic
+    @Column(name = "area_operacao", nullable = true, length = -1)
+    private String areaOperacao;
+
+    @Basic
+    @Column(name = "especie_alvo", nullable = true, length = -1)
+    private String especieAlvo;
+
 }
